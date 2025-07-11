@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ../training/runs/train/yolo_ball_tracking/weights:/app/models
+      - ./models:/app/models
     environment:
       - MODEL_PATH=/app/models/best.pt
     restart: unless-stopped
