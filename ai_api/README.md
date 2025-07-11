@@ -19,7 +19,7 @@ docker-compose up --build
 
 # Ou avec Docker directement
 docker build -t ball-detection-api .
-docker run -p 8000:8000 -v $(pwd)/../training/runs/train/yolo_ball_tracking/weights:/app/models ball-detection-api
+docker run -p 8000:8000 -v $(pwd)/./models/:/app/models ball-detection-api
 ```
 
 ### Installation locale
