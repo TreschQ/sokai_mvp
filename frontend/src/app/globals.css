@@ -1,3 +1,24 @@
+/* Thirdweb ConnectButton custom style override */
+.tw-connect-button,
+.tw-connect-modal__button,
+button[data-testid="tw-connect-button"] {
+  border-radius: 9999px !important;
+  background: #3AA93A !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 1.125rem !important;
+  box-shadow: 0 4px 16px 0 rgba(60, 180, 60, 0.15) !important;
+  padding: 0.75rem 2rem !important;
+  width: 100% !important;
+  transition: all 0.2s;
+}
+
+.tw-connect-button:disabled,
+.tw-connect-modal__button:disabled,
+button[data-testid="tw-connect-button"]:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

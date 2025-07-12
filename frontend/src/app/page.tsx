@@ -44,6 +44,19 @@ export default function HomePage() {
             client={client}
             connectModal={{ size: "compact" }}
             wallets={wallets}
+            connectButton={{
+              style: {
+                borderRadius: 9999,
+                background: "#3AA93A",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: "1.125rem",
+                boxShadow: "0 4px 16px 0 rgba(60, 180, 60, 0.15)",
+                padding: "0.75rem 2rem",
+                width: "100%",
+                transition: "all 0.2s",
+              },
+            }}
           />
         </div>
       </div>

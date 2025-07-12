@@ -23,9 +23,7 @@ type ThirdwebWalletProviderProps = {
 
 export function ThirdwebWalletProvider({ children }: ThirdwebWalletProviderProps) {
   return (
-    <ThirdwebProvider
-      clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
-    >
+    <ThirdwebProvider>
       {children}
     </ThirdwebProvider>
   );
