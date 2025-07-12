@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ethers } from 'ethers'
 import { usePrivy } from '@privy-io/react-auth'
-import { useMetaMask } from './WalletProvider'
-import SokaiABI from '../../abis/SokaiSBT_abi.json'
+import { useMetaMask } from '../wallet/WalletProvider'
+import SokaiABI from '../../../abis/SokaiSBT_abi.json'
 import PlayerCard from './PlayerCard'
 
 interface ExistingPlayerCardProps {

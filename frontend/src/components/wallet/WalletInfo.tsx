@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
 import { usePrivy } from '@privy-io/react-auth'
 import { useMetaMask } from './WalletProvider'
-import { isAdminWallet, ADMIN_WALLET_ADDRESS } from '../utils/constants'
+import { isAdminWallet, ADMIN_WALLET_ADDRESS } from '../../utils/constants'
 
 interface WalletInfoProps {
   isConnected: boolean

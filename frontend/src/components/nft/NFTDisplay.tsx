@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
-import SokaiABI from '../../abis/SokaiSBT_abi.json'
-import { getDisplayImageURI, getImageOverrideInfo } from '../utils/imageOverrides'
+import SokaiABI from '../../../abis/SokaiSBT_abi.json'
+import { getDisplayImageURI, getImageOverrideInfo } from '../../utils/imageOverrides'
 
 interface NFTDisplayProps {
   tokenId: string

@@ -1,9 +1,7 @@
+
 'use client';
 
-import * as fs from 'fs';
-import * as http from 'http';
-import FormData from 'form-data';
-import {  useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useOpenCV } from '@/context/OpenCVContext';
 
 

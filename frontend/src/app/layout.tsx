@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import { WalletProvider } from '@/components/WalletProvider'
+import { WalletProvider } from '@/components/wallet/WalletProvider'
 import { OpenCVProvider } from '@/context/OpenCVContext';
 import OpenCVLoader from '@/components/OpenCVLoader'
 

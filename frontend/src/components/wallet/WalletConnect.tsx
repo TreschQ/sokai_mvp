@@ -3,7 +3,8 @@
 import { usePrivy } from '@privy-io/react-auth'
 import { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
-import { useMetaMask } from './WalletProvider'
+// Update the import path below if WalletProvider is located elsewhere
+import { useMetaMask } from '../wallet/WalletProvider'
 
 interface WalletConnectProps {
   onConnectionChange: (connected: boolean) => void
