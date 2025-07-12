@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef, MutableRefObject } from 'react';
-import { useOpenCV } from '@/context/OpenCVContext';
 
 interface TargetBbox {
   x1: number;
@@ -24,20 +23,47 @@ interface BallBox {
 
 export default function Home() {
   const [temps, setTemps] = useState<number>(30);
+  const [showScore, setShowScore] = useState(false);
   const [nombrePoints, setNombrePoints] = useState<number>(0);
   const [target, setTarget] = useState<Target>(genererPositionCible());
+  const [isTuched, setIsTouched] = useState<boolean>(false);
+  const [countdown, setCountdown] = useState<number>(3); // Ajout du décompte
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const timerRef = useRef<HTMLDivElement | null>(null);
   const pointsRef = useRef<HTMLDivElement | null>(null);
 
-  // Timer
+  // Décompte avant le début du jeu
   useEffect(() => {
+    if (countdown <= 0) return;
+    const interval = setInterval(() => {
+      setCountdown(c => c - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [countdown]);
+
+  useEffect(() => {
+    if (isTuched) {
+      setShowScore(true);
+      setIsTouched(false);
+      const timer = setTimeout(() => {
+        setShowScore(false); // Changé de true à 
+  false
+      }, 1000);
+
+      return () => clearTimeout(timer); // Nettoie 
+
+    }
+  }, [isTuched]);
+
+  // Timer principal, démarre après le décompte
+  useEffect(() => {
+    if (countdown > 0) return;
     if (temps <= 0) return;
     const interval = setInterval(() => {
       setTemps(t => t - 1);
     }, 1000);
     return () => clearInterval(interval);
-  }, [temps]);
+  }, [countdown, temps]);
 
   // Webcam
   useEffect(() => {
@@ -75,7 +101,8 @@ export default function Home() {
       try {
         const data = await envoyerImage(blob, target.target_bbox);
         if (trouverResultats(data)) {
-          setNombrePoints(p => p + 1);
+          setNombrePoints(p => p + 5);
+          setIsTouched(true);
           const nouvelleCible = genererPositionCible();
           setTarget(nouvelleCible);
         }
@@ -106,6 +133,65 @@ export default function Home() {
 
   return (
     <div style={{ position: 'relative', width: 640, height: 480 }}>
+      {(countdown > 0) && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 640,
+            height: 480,
+            background: 'rgba(0,0,0,0.7)',
+            color: 'white',
+            fontSize: 80,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10
+          }}
+        >
+          {countdown}
+        </div>
+      )}
+      {(temps === 0 || nombrePoints >= 100) && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 640,
+            height: 480,
+            background: 'rgba(0,0,0,0.85)',
+            color: '#7ed957',
+            fontSize: 50,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 20
+          }}
+        >
+         NOMBRE DE POINTS : {nombrePoints}
+        </div>
+      )}
+      {(showScore) && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 640,
+            height: 480,
+            color: '#7ed957',
+            fontSize: 50,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 20
+          }}
+        >
+          +5
+        </div>
+      )}
       <video
         ref={videoRef}
         id="webcam"
@@ -161,7 +247,10 @@ export default function Home() {
 function genererPositionCible(): Target {
   const rayon = 30; // Rayon de la cible
   const x = Math.floor(Math.random() * (640 - 2 * rayon)) + rayon;
-  const y = Math.floor(Math.random() * (480 - 2 * rayon)) + rayon;
+  // Limite y au dernier quart de l'écran (360 à 480)
+  const minY = 480 * 0.80 + rayon; // 360 + rayon
+  const maxY = 480 - rayon;
+  const y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
 
   return {
     target_bbox: {
@@ -199,12 +288,6 @@ function trouverResultats(data: any): boolean {
     console.log("Aucune balle détectée");
     return false;
   } else {
-    console.log("Balle détectée");
-    if (data["ball_bbox"]) {
-      dessinerBallBox(data["ball_bbox"]);
-    }
-    if (data["reaches_target"])
-      alert("Balle placée");
     return !!data["reaches_target"];
   }
 }
@@ -212,23 +295,4 @@ function trouverResultats(data: any): boolean {
 // Placeholder pour l'envoi des résultats à la blockchain
 function ecrireResultat() {
   // TODO : envoyer les résultats à la blockchain
-}
-
-function dessinerBallBox(ballBox: BallBox) {
-  const overlay = document.getElementById('overlay') as HTMLCanvasElement | null;
-  if (!overlay || !ballBox) return;
-  const ctx = overlay.getContext('2d');
-  if (!ctx) return;
-  ctx.save();
-  ctx.strokeStyle = 'red';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.rect(
-    ballBox.x1,
-    ballBox.y1,
-    ballBox.x2 - ballBox.x1,
-    ballBox.y2 - ballBox.y1
-  );
-  ctx.stroke();
-  ctx.restore();
 }
