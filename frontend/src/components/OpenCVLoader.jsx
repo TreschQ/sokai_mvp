@@ -8,7 +8,7 @@ export default function OpenCVLoader() {
 
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = 'https://docs.opencv.org/4.8.0/opencv.js';
+    script.src = '/libs/opencv.js';
     script.async = true;
     script.onload = () => {
       cv['onRuntimeInitialized'] = () => {
