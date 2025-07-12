@@ -1,15 +1,34 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, MutableRefObject } from 'react';
 import { useOpenCV } from '@/context/OpenCVContext';
 
+interface TargetBbox {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+interface Target {
+  target_bbox: TargetBbox;
+  position: [number, number, number];
+}
+
+interface BallBox {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
 export default function Home() {
-  const [temps, setTemps] = useState(30);
-  const [nombrePoints, setNombrePoints] = useState(0);
-  const [target, setTarget] = useState(genererPositionCible());
-  const videoRef = useRef(null);
-  const timerRef = useRef(null);
-  const pointsRef = useRef(null);
+  const [temps, setTemps] = useState<number>(30);
+  const [nombrePoints, setNombrePoints] = useState<number>(0);
+  const [target, setTarget] = useState<Target>(genererPositionCible());
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const timerRef = useRef<HTMLDivElement | null>(null);
+  const pointsRef = useRef<HTMLDivElement | null>(null);
 
   // Timer
   useEffect(() => {
@@ -33,8 +52,8 @@ export default function Home() {
       });
     // Nettoyage du flux vidéo à la fin
     return () => {
-      if (video.srcObject) {
-        video.srcObject.getTracks().forEach(track => track.stop());
+      if (video && video.srcObject) {
+        (video.srcObject as MediaStream).getTracks().forEach(track => track.stop());
       }
     };
   }, []);
@@ -49,8 +68,10 @@ export default function Home() {
       canvas.width = 640;
       canvas.height = 480;
       const ctx = canvas.getContext('2d');
+      if (!ctx) return;
       ctx.drawImage(videoRef.current, 0, 0, 640, 480);
-      const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+      const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
+      if (!blob) return;
       try {
         const data = await envoyerImage(blob, target.target_bbox);
         if (trouverResultats(data)) {
@@ -68,15 +89,18 @@ export default function Home() {
   // Affichage du cercle cible sur le canvas
   useEffect(() => {
     if (!videoRef.current) return;
-    const overlay = document.getElementById('overlay');
+    const overlay = document.getElementById('overlay') as HTMLCanvasElement | null;
     if (!overlay) return;
     const ctx = overlay.getContext('2d');
+    if (!ctx) return;
     ctx.clearRect(0, 0, overlay.width, overlay.height);
     const [x, y, rayon] = target.position;
     ctx.beginPath();
     ctx.arc(x, y, rayon, 0, 2 * Math.PI);
-    ctx.strokeStyle = 'green';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillStyle = '#7ed957';
+    ctx.lineWidth = 6;
+    ctx.fill();
     ctx.stroke();
   }, [target, temps]);
 
@@ -87,14 +111,14 @@ export default function Home() {
         id="webcam"
         autoPlay
         playsInline
-        width="640"
-        height="480"
+        width={640}
+        height={480}
         style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
       />
       <canvas
         id="overlay"
-        width="640"
-        height="480"
+        width={640}
+        height={480}
         style={{ position: 'absolute', top: 0, left: 0, zIndex: 2, pointerEvents: 'none' }}
       />
       <div
@@ -134,10 +158,11 @@ export default function Home() {
 }
 
 // Génère une nouvelle cible aléatoire
-function genererPositionCible() {
-  const rayon = 30;
+function genererPositionCible(): Target {
+  const rayon = 30; // Rayon de la cible
   const x = Math.floor(Math.random() * (640 - 2 * rayon)) + rayon;
   const y = Math.floor(Math.random() * (480 - 2 * rayon)) + rayon;
+
   return {
     target_bbox: {
       x1: x - rayon,
@@ -150,7 +175,7 @@ function genererPositionCible() {
 }
 
 // Envoie l'image au backend
-async function envoyerImage(imageBlob, bbox) {
+async function envoyerImage(imageBlob: Blob, bbox: TargetBbox): Promise<any> {
   try {
     const formData = new FormData();
     formData.append('file', imageBlob, 'capture.png');
@@ -168,17 +193,42 @@ async function envoyerImage(imageBlob, bbox) {
 }
 
 // Analyse la réponse du backend
-function trouverResultats(data) {
-  if (!data["ball_detected"]) {
-    console.log("Aucune balle détectée")
-}
- else {
+function trouverResultats(data: any): boolean {
+  console.log("Résultats reçus :", data);
+  if (data["ball_detected"] === false) {
+    console.log("Aucune balle détectée");
+    return false;
+  } else {
     console.log("Balle détectée");
-    return data["reaches_target"]
-}
+    if (data["ball_bbox"]) {
+      dessinerBallBox(data["ball_bbox"]);
+    }
+    if (data["reaches_target"])
+      alert("Balle placée");
+    return !!data["reaches_target"];
+  }
 }
 
 // Placeholder pour l'envoi des résultats à la blockchain
 function ecrireResultat() {
   // TODO : envoyer les résultats à la blockchain
+}
+
+function dessinerBallBox(ballBox: BallBox) {
+  const overlay = document.getElementById('overlay') as HTMLCanvasElement | null;
+  if (!overlay || !ballBox) return;
+  const ctx = overlay.getContext('2d');
+  if (!ctx) return;
+  ctx.save();
+  ctx.strokeStyle = 'red';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.rect(
+    ballBox.x1,
+    ballBox.y1,
+    ballBox.x2 - ballBox.x1,
+    ballBox.y2 - ballBox.y1
+  );
+  ctx.stroke();
+  ctx.restore();
 }
