@@ -1,5 +1,4 @@
 import { ThirdwebProvider } from "thirdweb/react";
-import { createWallet } from "thirdweb/wallets";
 
 // Chiliz Spicy Testnet config
 const chain = {
