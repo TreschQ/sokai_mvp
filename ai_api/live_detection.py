@@ -2,6 +2,9 @@ import cv2
 import requests
 import json
 from pathlib import Path
+import time
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 # Configuration
 API_URL = "http://localhost:8000/detect_ball"
@@ -10,6 +13,33 @@ API_URL = "http://localhost:8000/detect_ball"
 target_bbox_left = {"x1": 50, "y1": 300, "x2": 150, "y2": 400}
 target_bbox_right = {"x1": 490, "y1": 300, "x2": 590, "y2": 400}
 
+# Configuration de la session HTTP persistante
+session = requests.Session()
+retry_strategy = Retry(
+    total=2,
+    backoff_factor=0.1,
+    status_forcelist=[429, 500, 502, 503, 504],
+)
+adapter = HTTPAdapter(max_retries=retry_strategy)
+session.mount("http://", adapter)
+session.mount("https://", adapter)
+
+def compress_frame(frame, quality=70, max_width=640):
+    """Compresse et redimensionne l'image pour réduire la latence"""
+    height, width = frame.shape[:2]
+    
+    # Redimensionner si trop large
+    if width > max_width:
+        scale = max_width / width
+        new_width = int(width * scale)
+        new_height = int(height * scale)
+        frame = cv2.resize(frame, (new_width, new_height))
+    
+    # Encoder avec compression
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
+    _, img_encoded = cv2.imencode('.jpg', frame, encode_param)
+    return img_encoded.tobytes()
+
 def main():
     # Initialisation
     cap = cv2.VideoCapture(0)
@@ -17,9 +47,17 @@ def main():
         print("❌ Impossible d'ouvrir la caméra")
         return
 
+    # Optimisation de la capture vidéo
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    cap.set(cv2.CAP_PROP_FPS, 30)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Buffer minimal
+
     frame_count = 0
     current_target = target_bbox_left  # Commencer avec la cible gauche
     last_ball_position = None
+    last_detection_time = 0
+    detection_interval = 0.1  # 100ms entre les détections
 
     print("📷 Appuyez sur 'q' pour quitter")
 
@@ -29,6 +67,8 @@ def main():
             print("❌ Échec de la capture")
             break
 
+        current_time = time.time()
+        
         # Afficher les infos de l'image
         h, w, c = frame.shape
         print(f"📐 Frame size: {w}x{h}")
@@ -51,15 +91,20 @@ def main():
         # Test simple : dessiner une ligne diagonale pour vérifier que le dessin fonctionne
         cv2.line(frame, (0, 0), (100, 100), (255, 255, 255), 2)  # Ligne blanche
 
-        # Détection toutes les 5 frames
-        if frame_count % 5 == 0:
-            _, img_encoded = cv2.imencode('.jpg', frame)
-            files = {'file': ("frame.jpg", img_encoded.tobytes(), 'image/jpeg')}
+        # Détection avec intervalle de temps au lieu de frame count
+        if current_time - last_detection_time >= detection_interval:
+            # Compresser l'image
+            compressed_image = compress_frame(frame, quality=70, max_width=640)
+            
+            files = {'file': ("frame.jpg", compressed_image, 'image/jpeg')}
             data = {'target_bbox': json.dumps(current_target)}
 
             try:
-                response = requests.post(API_URL, files=files, data=data, timeout=1.0)
-                print(f"📡 API Response status: {response.status_code}")
+                start_time = time.time()
+                response = session.post(API_URL, files=files, data=data, timeout=0.5)
+                latency = (time.time() - start_time) * 1000
+                print(f"📡 API Response status: {response.status_code} | Latence: {latency:.1f}ms")
+                
                 if response.ok:
                     result = response.json()
                     print(f"🔍 API Result: {result}")
@@ -76,8 +121,14 @@ def main():
                         print("❌ No ball detected or invalid response")
                 else:
                     print(f"❌ API Error: {response.status_code} - {response.text}")
+            except requests.exceptions.Timeout:
+                print("⏰ Timeout - API trop lente")
+            except requests.exceptions.ConnectionError:
+                print("🔌 Erreur de connexion")
             except Exception as e:
                 print(f"⚠️ Erreur API: {str(e)}")
+            
+            last_detection_time = current_time
 
         # Afficher la bbox du ballon si disponible
         if last_ball_position:
@@ -98,6 +149,7 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
+    session.close()
 
 if __name__ == "__main__":
     main()
