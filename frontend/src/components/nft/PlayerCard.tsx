@@ -33,6 +33,21 @@ export default function PlayerCard({
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
+  // Convert seconds to minutes for display
+  const formatTimeDisplay = (totalSeconds: number): { value: string; unit: string } => {
+    if (totalSeconds < 60) {
+      return { value: totalSeconds.toString(), unit: "Secondes" };
+    } else {
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      if (seconds === 0) {
+        return { value: minutes.toString(), unit: "Minutes" };
+      } else {
+        return { value: `${minutes}.${Math.round((seconds / 60) * 10)}`, unit: "Minutes" };
+      }
+    }
+  };
+
   useEffect(() => {
     if (tokenId && contractAddress) {
       fetchPlayerStats();
@@ -184,8 +199,8 @@ export default function PlayerCard({
         {/* Time */}
         <div className="p-4 rounded-lg border bg-[#1e2d24] border-green-900 text-green-200">
           <div className="text-center">
-            <div className="text-2xl font-bold">{stats.timeSpent}</div>
-            <div className="text-sm font-medium">Minutes Played</div>
+            <div className="text-2xl font-bold">{formatTimeDisplay(stats.timeSpent).value}</div>
+            <div className="text-sm font-medium">{formatTimeDisplay(stats.timeSpent).unit}</div>
           </div>
         </div>
       </div>

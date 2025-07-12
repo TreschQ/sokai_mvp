@@ -95,8 +95,44 @@ export default function Home() {
     }
   }, [thirdwebAccount?.address, user?.wallet?.address, userTokenId]);
 
+  // Récupérer les stats actuelles du NFT
+  const getCurrentStats = async () => {
+    try {
+      if (!userTokenId) return null;
+
+      const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+      if (!window.ethereum || !contractAddress) return null;
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const contract = new ethers.Contract(contractAddress, SokaiABI, provider);
+      
+      const tokenURI = await contract.tokenURI(userTokenId);
+      
+      if (tokenURI.startsWith("data:application/json;utf8,")) {
+        const jsonData = tokenURI.replace("data:application/json;utf8,", "");
+        const metadata = JSON.parse(jsonData);
+        const attributes = metadata.attributes || [];
+        
+        return {
+          currentScore: attributes.find((attr) => attr.trait_type === "Score")?.value || 0,
+          currentTimeSpent: attributes.find((attr) => attr.trait_type === "Total Time")?.value || 0,
+          currentExercise: attributes.find((attr) => attr.trait_type === "Exercise")?.value || "",
+          currentDate: attributes.find((attr) => attr.trait_type === "Date")?.value || ""
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des stats actuelles:', error);
+      return null;
+    }
+  };
+
   // Mise à jour des métadonnées NFT via smart contract  
   const updateSBTMetadatas = async (score) => {
+    // Déclarer les variables en dehors du try/catch pour qu'elles soient accessibles partout
+    let newScore = score;
+    let newTimeSpent = 30; // 30 secondes par défaut
+    
     try {
       console.log('🏆 Fin de l\'entraînement - Score:', score);
       
@@ -105,6 +141,16 @@ export default function Home() {
         alert('Erreur: Impossible de trouver votre SOKAI Card. Assurez-vous d\'être connecté avec le bon wallet.');
         return;
       }
+
+      // Récupérer les stats actuelles
+      const currentStats = await getCurrentStats();
+      console.log('📊 Stats actuelles:', currentStats);
+
+      // Calculer les nouvelles stats (cumulatives)
+      newScore = (currentStats?.currentScore || 0) + score;
+      newTimeSpent = (currentStats?.currentTimeSpent || 0) + 30; // Ajouter 30 secondes
+      
+      console.log('📈 Nouvelles stats:', { newScore, newTimeSpent });
       
       // Essayer d'abord l'approche via API admin (pour éviter les permissions)
       const apiResponse = await fetch('/api/update-stats', {
@@ -112,8 +158,8 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tokenId: userTokenId,
-          score: score,
-          timeSpent: 30,
+          score: newScore,
+          timeSpent: newTimeSpent,
           exercise: 'Training Ball Match',
           date: new Date().toISOString().split('T')[0]
         })
@@ -125,8 +171,10 @@ export default function Home() {
         
         alert(`🎯 Entraînement terminé !
         
-Score: ${score} points
-Niveau: ${getLevel(score)}
+Score cette session: ${score} points
+Score total: ${newScore} points  
+Niveau: ${getLevel(newScore)}
+Temps total: ${formatTimeDisplay(newTimeSpent)}
 Exercice: Training Ball Match
 
 Transaction: ${result.txHash?.substring(0, 10)}...`);
@@ -148,8 +196,8 @@ Transaction: ${result.txHash?.substring(0, 10)}...`);
       try {
         const success = await updateStats({
           tokenId: userTokenId,
-          score: score,
-          timeSpent: 30,
+          score: newScore,
+          timeSpent: newTimeSpent,
           exercise: 'Training Ball Match',
           date: new Date().toISOString().split('T')[0]
         });
@@ -157,8 +205,10 @@ Transaction: ${result.txHash?.substring(0, 10)}...`);
         if (success) {
           alert(`🎯 Entraînement terminé !
           
-Score: ${score} points
-Niveau: ${getLevel(score)}
+Score cette session: ${score} points
+Score total: ${newScore} points
+Niveau: ${getLevel(newScore)}
+Temps total: ${formatTimeDisplay(newTimeSpent)}
 
 Transaction: ${txHash}`);
 
@@ -177,8 +227,10 @@ Transaction: ${txHash}`);
         // Mock en cas d'échec complet
         alert(`🎯 Entraînement terminé !
         
-Score: ${score} points
-Niveau: ${getLevel(score)}
+Score cette session: ${score} points
+Score total: ${newScore} points
+Niveau: ${getLevel(newScore)}
+Temps total: ${formatTimeDisplay(newTimeSpent)}
 
 ⚠️ Sauvegarde blockchain en mode test`);
 
@@ -371,5 +423,20 @@ function getLevel(score) {
   if (score >= 15) return 'Intermédiaire';
   if (score >= 5) return 'Débutant';
   return 'Novice';
+}
+
+// Formate le temps d'affichage (secondes ou minutes)
+function formatTimeDisplay(totalSeconds) {
+  if (totalSeconds < 60) {
+    return `${totalSeconds} secondes`;
+  } else {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    if (seconds === 0) {
+      return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+    } else {
+      return `${minutes}m ${seconds}s`;
+    }
+  }
 }
 
