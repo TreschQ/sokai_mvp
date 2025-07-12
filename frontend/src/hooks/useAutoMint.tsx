@@ -10,6 +10,7 @@ export function useAutoMint() {
   const [hasSBT, setHasSBT] = useState<boolean | null>(null)
   const [tokenId, setTokenId] = useState<string | null>(null)
   const [isMinting, setIsMinting] = useState(false)
+  const [hasWallet, setHasWallet] = useState(false)
   
   const { user } = usePrivy()
   const thirdwebAccount = useActiveAccount()
@@ -90,16 +91,22 @@ export function useAutoMint() {
     const walletAddress = getWalletAddress()
     
     if (walletAddress) {
+      setHasWallet(true)
+      setIsChecking(true) // Commencer le loading dès qu'on détecte un wallet
+      
       // Délai pour laisser le temps aux providers de s'initialiser
       const timer = setTimeout(() => {
         checkAndMintIfNeeded()
-      }, 2000)
+      }, 1500)
       
       return () => clearTimeout(timer)
     } else {
       // Reset si plus de wallet connecté
+      setHasWallet(false)
       setHasSBT(null)
       setTokenId(null)
+      setIsChecking(false)
+      setIsMinting(false)
     }
   }, [thirdwebAccount?.address, user?.wallet?.address])
 
@@ -115,11 +122,13 @@ export function useAutoMint() {
     hasSBT,
     tokenId,
     isMinting,
+    hasWallet,
     refresh,
     walletAddress: getWalletAddress(),
     // États combinés pour l'UI
-    isReady: !isChecking && !isMinting && hasSBT === true && tokenId !== null,
-    isLoading: isChecking || isMinting,
-    needsSetup: !isChecking && !isMinting && hasSBT === false
+    isReady: hasWallet && !isChecking && !isMinting && hasSBT === true && tokenId !== null,
+    isLoading: hasWallet && (isChecking || isMinting),
+    needsSetup: hasWallet && !isChecking && !isMinting && hasSBT === false,
+    noWallet: !hasWallet
   }
 }

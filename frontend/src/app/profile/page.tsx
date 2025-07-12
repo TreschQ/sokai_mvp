@@ -17,6 +17,7 @@ function ProfileContent() {
     isReady, 
     isLoading, 
     needsSetup, 
+    noWallet,
     walletAddress, 
     tokenId,
     isMinting,
@@ -45,21 +46,26 @@ function ProfileContent() {
 
   // Rendu conditionnel basé sur l'état
   const renderContent = () => {
+    // Wallet connecté mais en cours de vérification/mint
     if (isLoading) {
       return (
         <div className="text-center">
           <div className="animate-pulse">
             <div className="text-white mb-2">
-              {isMinting ? '🎨 Création de votre SOKAI Card...' : '🔄 Vérification wallet...'}
+              {isMinting ? '🎨 Création de votre SOKAI Card...' : '🔄 Connexion au testnet...'}
             </div>
             <div className="text-green-200 text-sm">
-              {isMinting ? 'Mint en cours, veuillez patienter...' : 'Initialisation des providers...'}
+              {isMinting ? 'Mint en cours, veuillez patienter...' : 'Vérification de votre SBT...'}
+            </div>
+            <div className="mt-4">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
             </div>
           </div>
         </div>
       )
     }
 
+    // Wallet connecté mais erreur lors de la configuration
     if (needsSetup) {
       return (
         <div className="text-center">
@@ -74,6 +80,7 @@ function ProfileContent() {
       )
     }
 
+    // Wallet connecté et SBT prêt
     if (isReady && walletAddress && tokenId) {
       return (
         <div className="w-full max-w-xs mx-auto">
@@ -86,16 +93,30 @@ function ProfileContent() {
       )
     }
 
-    // Pas de wallet connecté
+    // Aucun wallet connecté
+    if (noWallet) {
+      return (
+        <div className="text-center">
+          <p className="text-white mb-4">Connecte ton wallet Socios ou MetaMask pour voir ta carte SOKAI.</p>
+          <a 
+            href="/" 
+            className="text-green-400 underline hover:text-green-300 transition-colors"
+          >
+            Retour à l'accueil pour se connecter
+          </a>
+        </div>
+      )
+    }
+
+    // Fallback - état indéterminé
     return (
       <div className="text-center">
-        <p className="text-white mb-4">Connecte ton wallet Socios ou MetaMask pour voir ta carte SOKAI.</p>
-        <a 
-          href="/" 
-          className="text-green-400 underline hover:text-green-300 transition-colors"
-        >
-          Retour à l'accueil pour se connecter
-        </a>
+        <div className="animate-pulse">
+          <div className="text-white mb-2">🔄 Initialisation...</div>
+          <div className="mt-4">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
+          </div>
+        </div>
       </div>
     )
   }
