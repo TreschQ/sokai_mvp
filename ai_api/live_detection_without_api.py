@@ -193,19 +193,25 @@ def detect_ball(model, frame):
         return None, 0
 
 def check_target_reached(ball_bbox, target_bbox, threshold=0.7):
-    """Vérifie si le ballon atteint la cible"""
+    """Vérifie si le ballon atteint la cible (dès qu'il touche à peine)"""
     if ball_bbox is None:
         return False
     
-    # Calculer l'intersection entre la bbox du ballon et la cible
-    ball_center_x = (ball_bbox["x1"] + ball_bbox["x2"]) / 2
-    ball_center_y = (ball_bbox["y1"] + ball_bbox["y2"]) / 2
+    # Vérifier si les bbox se chevauchent (même légèrement)
+    # Le ballon touche la cible si :
+    # - Le bord gauche du ballon est à gauche du bord droit de la cible ET
+    # - Le bord droit du ballon est à droite du bord gauche de la cible ET
+    # - Le bord haut du ballon est au-dessus du bord bas de la cible ET
+    # - Le bord bas du ballon est en-dessous du bord haut de la cible
     
-    # Vérifier si le centre du ballon est dans la zone cible
-    in_target_x = target_bbox["x1"] <= ball_center_x <= target_bbox["x2"]
-    in_target_y = target_bbox["y1"] <= ball_center_y <= target_bbox["y2"]
+    overlap_x = (ball_bbox["x1"] < target_bbox["x2"] and 
+                ball_bbox["x2"] > target_bbox["x1"])
     
-    return in_target_x and in_target_y
+    overlap_y = (ball_bbox["y1"] < target_bbox["y2"] and 
+                ball_bbox["y2"] > target_bbox["y1"])
+    
+    # Retourner true dès qu'il y a un chevauchement (même minime)
+    return overlap_x and overlap_y
 
 def draw_target_bbox(frame, target_bbox, color=(0, 0, 255), thickness=3):
     """Dessine la bbox cible sur l'image d'affichage"""
