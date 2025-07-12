@@ -1,8 +1,7 @@
 import formidable from 'formidable';
 import fs from 'fs';
-import path from 'path';
-import childProcess from 'child_process';
-
+import FormData from 'form-data';
+import axios from 'axios';
 
 export const config = {
   api: {
@@ -49,21 +48,32 @@ export default async function handler(req, res) {
     }
 
     try {
-      // Chemins de sauvegarde
-      const imagePath = path.join("/root/sokai_mvp/src/pages/api/", 'capture.jpg');
-      const jsonPath = path.join("/root/sokai_mvp/src/pages/api/", 'box.json');
+      // Envoi direct sans sauvegarde de fichiers
+      const formData = new FormData();
+      console.log("Fichier à envoyer :", file.toString());
+      console.log("Bbox à envoyer :", bboxValue);
+      formData.append('file', fs.createReadStream(file.filepath), {
+        filename: file.filepath,
+        contentType: 'image/jpeg'
+      });
+      formData.append('target_bbox', bboxValue);
 
-      // Sauvegarde l'image
-      await fs.promises.copyFile(file.filepath, imagePath);
-
-      // Sauvegarde le JSON
-      await fs.promises.writeFile(jsonPath, bboxValue, 'utf-8');
-
-      const output = childProcess.execSync(`python3 /root/sokai_mvp/src/pages/api/request.py`).toString();
-      
-      res.status(200).json(output);
+      try {
+        const response = await axios.post(
+          // à changer lors du déploiement
+          'http://172.21.0.2:8000/detect_ball',
+          formData,
+          { headers: formData.getHeaders() }
+        );
+        console.log('Réponse de l\'API Python:', response.data);
+        res.status(200).json(response.data);
+      } catch (error) {
+        console.error('Erreur lors de la requête à l\'API Python:', error.response.data);
+        res.status(500).json({ error: 'Erreur lors de la requête à l\'API Python', details: error.message });
+      }
     } catch (e) {
-      res.status(500).json({ error: 'Erreur lors de la sauvegarde des fichiers' });
+        console.error('Erreur lors de la requête à l\'API Python:', e);
+      res.status(500).json({ error: 'Erreur lors de la préparation des données' });
     }
   });
 }

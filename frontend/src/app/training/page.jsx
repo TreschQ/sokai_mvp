@@ -313,8 +313,10 @@ Temps total: ${formatTimeDisplay(newTimeSpent)}
     const [x, y, rayon] = target.position;
     ctx.beginPath();
     ctx.arc(x, y, rayon, 0, 2 * Math.PI);
-    ctx.strokeStyle = 'green';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillStyle = '#7ed957';
+    ctx.lineWidth = 6;
+    ctx.fill();
     ctx.stroke();
   }, [target, temps]);
 
@@ -407,13 +409,39 @@ async function envoyerImage(imageBlob, bbox) {
 
 // Analyse la réponse du backend
 function trouverResultats(data) {
-  if (!data["ball_detected"]) {
-    console.log("Aucune balle détectée")
-}
- else {
+  console.log("Résultats reçus :", data);
+  if (data["ball_detected"] === false) {
+    console.log("Aucune balle détectée");
+    return false;
+  } else {
     console.log("Balle détectée");
-    return data["reaches_target"]
+    if (data["ball_bbox"]) {
+      dessinerBallBox(data["ball_bbox"]);
+    }
+    if (data["reaches_target"])
+      alert("Balle placée");
+    return !!data["reaches_target"];
+  }
 }
+
+// Dessine la bbox de la balle détectée
+function dessinerBallBox(ballBox) {
+  const overlay = document.getElementById('overlay');
+  if (!overlay || !ballBox) return;
+  const ctx = overlay.getContext('2d');
+  if (!ctx) return;
+  ctx.save();
+  ctx.strokeStyle = 'red';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.rect(
+    ballBox.x1,
+    ballBox.y1,
+    ballBox.x2 - ballBox.x1,
+    ballBox.y2 - ballBox.y1
+  );
+  ctx.stroke();
+  ctx.restore();
 }
 
 // Calcule le niveau basé sur le score
