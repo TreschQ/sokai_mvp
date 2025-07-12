@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react'
 import { usePrivy } from '@privy-io/react-auth'
 import { useActiveWallet, useActiveAccount } from "thirdweb/react";
+import { useSearchParams } from 'next/navigation'
 import WalletPlayerCard from '@/components/nft/WalletPlayerCard'
 import BottomBar from '@/components/BottomBar'
 
@@ -13,9 +14,21 @@ function ProfilePage() {
   const { user, logout: privyLogout } = usePrivy();
   const thirdwebWallet = useActiveWallet();
   const thirdwebAccount = useActiveAccount();
+  const searchParams = useSearchParams();
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
   
+  // Gestion du refresh depuis les paramètres URL
+  useEffect(() => {
+    const refresh = searchParams?.get('refresh');
+    if (refresh === 'true') {
+      setRefreshKey(prev => prev + 1);
+      // Nettoyer l'URL après le refresh
+      window.history.replaceState({}, '', '/profile');
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     // console.log('🔄 Profile page - checking wallet connection...');
     // console.log('- Thirdweb account:', thirdwebAccount);
@@ -116,6 +129,7 @@ function ProfilePage() {
         ) : isConnected ? (
           <div className="w-full max-w-xs mx-auto">
             <WalletPlayerCard 
+              key={refreshKey}
               walletAddress={walletAddress!}
               contractAddress={process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!}
             />
