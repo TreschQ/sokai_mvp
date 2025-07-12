@@ -61,7 +61,7 @@ export default async function handler(req, res) {
       try {
         const response = await axios.post(
           // à changer lors du déploiement
-          'http://172.21.0.3:8000/detect_ball',
+          'http://localhost:8000/detect_ball',
           formData,
           { headers: formData.getHeaders() }
         );

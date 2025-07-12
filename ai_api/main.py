@@ -37,8 +37,17 @@ async def startup_event():
     """Charger le modèle YOLO au démarrage de l'API"""
     global model
     try:
-        # Charger le modèle entraîné
-        model = YOLO("/app/models/best.pt")
+        # Charger le modèle entraîné (chemin adaptatif pour local/Docker)
+        import os
+        if os.path.exists("/app/models/best.pt"):
+            # Chemin Docker
+            model_path = "/app/models/best.pt"
+        else:
+            # Chemin local
+            model_path = "models/best.pt"
+        
+        model = YOLO(model_path)
+        logger.info(f"Modèle YOLO chargé depuis: {model_path}")
         logger.info("Modèle YOLO chargé avec succès")
     except Exception as e:
         logger.error(f"Erreur lors du chargement du modèle: {e}")
