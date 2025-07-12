@@ -35,9 +35,37 @@ export class StatsService {
   }
 
   /**
-   * Trouve le token ID associé à une adresse wallet
+   * Mint automatiquement un SBT pour un nouveau wallet
    */
-  async findUserTokenId(walletAddress: string): Promise<string | null> {
+  async autoMintSBT(walletAddress: string): Promise<boolean> {
+    try {
+      console.log('🎨 Auto-mint SBT pour nouveau wallet:', walletAddress)
+      
+      const response = await fetch('/api/mint-nft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userAddress: walletAddress })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log('✅ SBT mint avec succès:', result.txHash)
+        return true
+      } else {
+        const errorData = await response.json()
+        console.error('❌ Erreur mint SBT:', errorData.error)
+        return false
+      }
+    } catch (error: any) {
+      console.error('❌ Erreur lors du mint automatique:', error)
+      return false
+    }
+  }
+
+  /**
+   * Trouve le token ID associé à une adresse wallet avec auto-mint si nécessaire
+   */
+  async findUserTokenId(walletAddress: string, autoMint: boolean = true): Promise<string | null> {
     try {
       if (!window.ethereum) {
         console.error('Ethereum provider non disponible')
@@ -49,9 +77,31 @@ export class StatsService {
       
       // Vérifier le balance d'abord
       const balance = await contract.balanceOf(walletAddress)
+      
       if (balance === BigInt(0)) {
-        console.error('Aucun SBT trouvé pour ce wallet')
-        return null
+        console.log('🔍 Aucun SBT trouvé pour ce wallet')
+        
+        if (autoMint) {
+          console.log('🎨 Tentative de mint automatique...')
+          const mintSuccess = await this.autoMintSBT(walletAddress)
+          
+          if (mintSuccess) {
+            // Attendre un peu puis rechercher à nouveau
+            await new Promise(resolve => setTimeout(resolve, 3000))
+            
+            // Réessayer de trouver le token ID après le mint
+            const newBalance = await contract.balanceOf(walletAddress)
+            if (newBalance === BigInt(0)) {
+              console.error('❌ Le mint a échoué, aucun token trouvé après mint')
+              return null
+            }
+          } else {
+            console.error('❌ Échec du mint automatique')
+            return null
+          }
+        } else {
+          return null
+        }
       }
 
       // Chercher le token ID (optimisé pour éviter trop d'appels)
@@ -59,7 +109,7 @@ export class StatsService {
         try {
           const owner = await contract.ownerOf(i)
           if (owner.toLowerCase() === walletAddress.toLowerCase()) {
-            console.log('Token ID trouvé:', i)
+            console.log('✅ Token ID trouvé:', i)
             return i.toString()
           }
         } catch (e) {
@@ -67,10 +117,10 @@ export class StatsService {
         }
       }
 
-      console.error('Token ID introuvable pour ce wallet')
+      console.error('❌ Token ID introuvable pour ce wallet')
       return null
     } catch (error) {
-      console.error('Erreur lors de la recherche du token ID:', error)
+      console.error('❌ Erreur lors de la recherche du token ID:', error)
       return null
     }
   }
