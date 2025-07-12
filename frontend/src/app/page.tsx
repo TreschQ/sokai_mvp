@@ -15,7 +15,7 @@ export default function HomePage() {
   const thirdwebWallet = useActiveWallet();
 
   const client = createThirdwebClient({
-    clientId: "9b6f9196120187dcd8df2cd28da401ff",
+    clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID!,
   });
 
   const wallets = [
