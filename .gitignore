@@ -1,4 +1,6 @@
 .DS_Store
-frontend/src/pages/api/capture.png
+.vscode/
+.venv/
 frontend/src/pages/api/capture.jpg
+frontend/src/pages/api/capture.png
 frontend/src/pages/api/box.json
