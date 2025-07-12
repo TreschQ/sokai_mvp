@@ -6,7 +6,7 @@ import { usePrivy } from '@privy-io/react-auth'
 import { useMetaMask } from '../wallet/WalletProvider'
 import SokaiABI from '../../../abis/SokaiSBT_abi.json'
 import NFTDisplay from './NFTDisplay'
-import PlayerCard from '../PlayerCard'
+import PlayerCard from './PlayerCard'
 import { isAdminWallet, ADMIN_WALLET_ADDRESS } from '../../utils/constants'
 
 interface MintFormProps {
