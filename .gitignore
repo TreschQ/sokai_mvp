@@ -1,3 +1,6 @@
 .DS_Store
 .vscode/
 .venv/
+frontend/src/pages/api/box.json
+frontend/src/pages/api/capture.jpg
+frontend/src/pages/api/capture.png
