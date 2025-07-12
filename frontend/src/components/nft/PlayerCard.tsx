@@ -116,9 +116,9 @@ export default function PlayerCard({ tokenId, contractAddress }: PlayerCardProps
 
   // Score color based on performance
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-50 border-green-200'
-    if (score >= 60) return 'text-yellow-600 bg-yellow-50 border-yellow-200'
-    return 'text-red-600 bg-red-50 border-red-200'
+    if (score >= 80) return 'text-green-600 bg-[#13351e] border-green-200'
+    if (score >= 60) return 'text-yellow-600 bg-yellow-900 border-yellow-200'
+    return 'text-red-600 bg-[#1e2d24] border-red-200'
   }
 
   return (
@@ -165,9 +165,9 @@ export default function PlayerCard({ tokenId, contractAddress }: PlayerCardProps
         </div>
       </div>
       {/* Performance Stats */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-4 mb-6 ">
         {/* Score */}
-        <div className={`p-4 rounded-lg border ${getScoreColor(stats.score)} bg-[#13351e]` }>
+        <div className={`p-4 rounded-lg border ${getScoreColor(stats.score)}` }>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-300">
               {stats.score}
