@@ -59,9 +59,9 @@ export default async function handler(req, res) {
       formData.append('target_bbox', bboxValue);
 
       try {
+        const apiUrl = process.env.NEXT_PUBLIC_BALL_DETECTION_API || 'http://localhost:8000';
         const response = await axios.post(
-          // à changer lors du déploiement
-          'http://172.21.0.3:8000/detect_ball',
+          `${apiUrl}/detect_ball`,
           formData,
           { headers: formData.getHeaders() }
         );
