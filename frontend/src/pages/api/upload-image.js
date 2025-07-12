@@ -1,6 +1,8 @@
 import formidable from 'formidable';
 import fs from 'fs';
-import fetch from 'node-fetch';
+import path from 'path';
+import childProcess from 'child_process';
+
 
 export const config = {
   api: {
@@ -13,25 +15,55 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Méthode non autorisée' });
   }
 
-  const form = new formidable.IncomingForm();
+  const form = formidable();
 
   form.parse(req, async (err, fields, files) => {
-    if (err) return res.status(500).json({ error: 'Erreur parsing form' });
+    if (err) {
+      return res.status(500).json({ error: 'Erreur parsing form' });
+    }
 
-    const bbox = fields.bbox;
-    const file = files.file;
+    // Récupère le fichier image
+    let file;
+    const fileField = files.file;
+    if (Array.isArray(fileField)) {
+      file = fileField[0];
+    } else {
+      file = fileField;
+    }
 
-    // Forward en multipart vers le backend Python
-    const formData = new FormData();
-    formData.append('file', fs.createReadStream(file.filepath), file.originalFilename);
-    formData.append('bbox', bbox);
+    if (!file || !file.filepath) {
+      return res.status(400).json({ error: 'Fichier manquant' });
+    }
 
-    const backendResponse = await fetch('http://localhost:8000/upload', {
-      method: 'POST',
-      body: formData
-    });
+    // Récupère le bbox (json)
+    const bbox = fields.bbox || fields.data;
+    let bboxValue;
+    if (Array.isArray(bbox)) {
+      bboxValue = bbox[0];
+    } else if (typeof bbox === 'object' && bbox !== null) {
+      bboxValue = JSON.stringify(bbox);
+    } else if (typeof bbox === 'string') {
+      bboxValue = bbox;
+    } else {
+      bboxValue = '';
+    }
 
-    const data = await backendResponse.json();
-    res.status(backendResponse.status).json(data);
+    try {
+      // Chemins de sauvegarde
+      const imagePath = path.join("/root/sokai_mvp/src/pages/api/", 'capture.jpg');
+      const jsonPath = path.join("/root/sokai_mvp/src/pages/api/", 'box.json');
+
+      // Sauvegarde l'image
+      await fs.promises.copyFile(file.filepath, imagePath);
+
+      // Sauvegarde le JSON
+      await fs.promises.writeFile(jsonPath, bboxValue, 'utf-8');
+
+      const output = childProcess.execSync(`python3 /root/sokai_mvp/src/pages/api/request.py`).toString();
+      
+      res.status(200).json(output);
+    } catch (e) {
+      res.status(500).json({ error: 'Erreur lors de la sauvegarde des fichiers' });
+    }
   });
 }
