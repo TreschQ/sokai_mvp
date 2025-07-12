@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { WalletProvider } from '@/components/WalletProvider'
+import { OpenCVProvider } from '@/context/OpenCVContext';
+import OpenCVLoader from '@/components/OpenCVLoader'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -18,9 +20,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <WalletProvider>
-          {children}
-        </WalletProvider>
+        <OpenCVProvider>
+          <WalletProvider>
+            {children}
+          </WalletProvider>  
+          <OpenCVLoader />
+        </OpenCVProvider>
+        
       </body>
     </html>
   )
