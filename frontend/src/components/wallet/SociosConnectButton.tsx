@@ -20,9 +20,15 @@ const SociosConnectButton = () => {
         });
         return wallet;
       });
-    } catch (e) {
+    } catch (e: any) {
+      // Ignorer les erreurs WalletConnect d'expiration
+      if (e?.message?.includes('Proposal expired') || e?.message?.includes('No matching key')) {
+        console.log('WalletConnect cleanup error (ignored):', e.message);
+        return;
+      }
+      
       setError("Erreur de connexion Socios. Rafraîchissez la page et réessayez.");
-      console.error(e);
+      console.error('Socios connection error:', e);
     }
   };
 

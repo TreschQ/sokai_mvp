@@ -21,6 +21,28 @@ type ThirdwebWalletProviderProps = {
 };
 
 export function ThirdwebWalletProvider({ children }: ThirdwebWalletProviderProps) {
+  // Nettoyer les données WalletConnect expirées au démarrage
+  if (typeof window !== 'undefined') {
+    const cleanWalletConnect = () => {
+      try {
+        // Nettoyer les clés WalletConnect expirées
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key?.startsWith('wc@2:') || key?.startsWith('wagmi.')) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+      } catch (e) {
+        console.log('WalletConnect cleanup failed:', e);
+      }
+    };
+    
+    // Nettoyer une seule fois au montage
+    cleanWalletConnect();
+  }
+
   return (
     <ThirdwebProvider>
       {children}
