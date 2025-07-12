@@ -42,4 +42,3 @@ Pour mettre en réseau le conteneur de l'api d'ia avec le conteneur du frontend 
 
  Prenez la valeur de Containers["83119e038f3d42419812e33a3c588f3da44a2f329c4508b0ae77d3059b761628"]["IPv4Address"]
 
-
