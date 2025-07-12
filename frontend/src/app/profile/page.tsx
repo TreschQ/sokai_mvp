@@ -1,15 +1,13 @@
 'use client'
 
-
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { usePrivy } from '@privy-io/react-auth'
 import { useActiveWallet, useActiveAccount } from "thirdweb/react";
 import { useSearchParams } from 'next/navigation'
 import WalletPlayerCard from '@/components/nft/WalletPlayerCard'
 import BottomBar from '@/components/BottomBar'
 
-
-function ProfilePage() {
+function ProfileContent() {
   // Détection Privy et Thirdweb
   const { user, logout: privyLogout } = usePrivy();
   const thirdwebWallet = useActiveWallet();
@@ -148,6 +146,18 @@ function ProfilePage() {
       </div>
       <BottomBar />
     </main>
+  )
+}
+
+function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#23272F] to-[#444857]">
+        <div className="text-white">Loading...</div>
+      </main>
+    }>
+      <ProfileContent />
+    </Suspense>
   )
 }
 

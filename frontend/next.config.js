@@ -20,8 +20,7 @@ const nextConfig = {
   // Reduce module resolution
   pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
   
-  // Faster builds
-  swcMinify: true,
+  // SWC minification is now enabled by default in Next.js 15
   
   // Disable source maps in dev for speed
   productionBrowserSourceMaps: false
