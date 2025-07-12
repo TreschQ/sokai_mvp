@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { usePrivy } from '@privy-io/react-auth'
 import { useActiveWallet, useActiveAccount } from "thirdweb/react";
 import { useSearchParams } from 'next/navigation'
 import WalletPlayerCard from '@/components/nft/WalletPlayerCard'
 import BottomBar from '@/components/BottomBar'
 
+function ProfileContent() {
 function ProfileContent() {
   // Détection Privy et Thirdweb
   const { user, logout: privyLogout } = usePrivy();

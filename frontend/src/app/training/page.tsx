@@ -46,12 +46,10 @@ export default function Home() {
       setShowScore(true);
       setIsTouched(false);
       const timer = setTimeout(() => {
-        setShowScore(false); // Changé de true à 
-  false
+        setShowScore(false);
       }, 1000);
 
-      return () => clearTimeout(timer); // Nettoie 
-
+      return () => clearTimeout(timer);
     }
   }, [isTuched]);
 
@@ -115,21 +113,26 @@ export default function Home() {
 
   // Affichage du cercle cible sur le canvas
   useEffect(() => {
-    if (!videoRef.current) return;
     const overlay = document.getElementById('overlay') as HTMLCanvasElement | null;
     if (!overlay) return;
     const ctx = overlay.getContext('2d');
     if (!ctx) return;
+    
+    // Nettoyer le canvas
     ctx.clearRect(0, 0, overlay.width, overlay.height);
-    const [x, y, rayon] = target.position;
-    ctx.beginPath();
-    ctx.arc(x, y, rayon, 0, 2 * Math.PI);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.fillStyle = '#7ed957';
-    ctx.lineWidth = 6;
-    ctx.fill();
-    ctx.stroke();
-  }, [target, temps]);
+    
+    // Dessiner la cible seulement pendant le jeu (après countdown et avant fin)
+    if (countdown <= 0 && temps > 0) {
+      const [x, y, rayon] = target.position;
+      ctx.beginPath();
+      ctx.arc(x, y, rayon, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fillStyle = '#7ed957';
+      ctx.lineWidth = 6;
+      ctx.fill();
+      ctx.stroke();
+    }
+  }, [target, temps, countdown]);
 
   return (
     <div style={{ position: 'relative', width: 640, height: 480 }}>
