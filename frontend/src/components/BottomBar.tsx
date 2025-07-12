@@ -7,7 +7,7 @@ import { PiSoccerBallFill } from 'react-icons/pi'
 const navItems = [
   { href: '/', label: 'Home', icon: <FaHome size={22} /> },
   { href: '/profile', label: 'Player', icon: <FaUserCircle size={22} /> },
-  { href: '/training', label: 'Training', icon: <PiSoccerBallFill size={22} /> },
+  { href: '/exercises', label: 'Training', icon: <PiSoccerBallFill size={22} /> },
 ]
 
 import { useRouter } from 'next/navigation'
