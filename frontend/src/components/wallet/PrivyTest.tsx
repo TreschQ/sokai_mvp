@@ -20,16 +20,16 @@ export default function PrivyTest() {
       {ready && !authenticated && (
         <button 
           onClick={login}
-          className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
+          className="bg-blue-500 text-white px-4 py-2 rounded mt-4 cursor-pointer"
         >
           Test Login Privy
         </button>
       )}
-      
+
       {authenticated && (
         <button 
-          onClick={logout}
-          className="bg-red-500 text-white px-4 py-2 rounded mt-4"
+          onClick={async () => { await logout(); window.location.reload(); }}
+          className="bg-red-500 text-white px-4 py-2 rounded mt-4 cursor-pointer"
         >
           Test Logout Privy
         </button>

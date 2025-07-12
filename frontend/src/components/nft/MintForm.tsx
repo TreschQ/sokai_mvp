@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
 import { usePrivy } from '@privy-io/react-auth'
-import { useMetaMask } from './WalletProvider'
-import SokaiABI from '../../abis/SokaiSBT_abi.json'
+import { useMetaMask } from '../wallet/WalletProvider'
+import SokaiABI from '../../../abis/SokaiSBT_abi.json'
 import NFTDisplay from './NFTDisplay'
 import PlayerCard from './PlayerCard'
-import { isAdminWallet, ADMIN_WALLET_ADDRESS } from '../utils/constants'
+import { isAdminWallet, ADMIN_WALLET_ADDRESS } from '../../utils/constants'
 
 interface MintFormProps {
   isConnected: boolean
@@ -41,8 +41,13 @@ export default function MintForm({ isConnected }: MintFormProps) {
   // Add debug info display
   const [debugInfo, setDebugInfo] = useState<string>('')
 
-  const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!
+  const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS
   const chainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID!)
+
+  // Vérification de l'adresse du contrat
+  if (!contractAddress || contractAddress === 'undefined' || contractAddress === 'null') {
+    throw new Error('L\'adresse du contrat est manquante ou invalide. Vérifiez la variable NEXT_PUBLIC_CONTRACT_ADDRESS dans votre .env.local')
+  }
 
   // Update userId when wallet connects
   useEffect(() => {

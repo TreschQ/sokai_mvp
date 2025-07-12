@@ -8,7 +8,7 @@ import {
   removeUserImageOverride,
   USER_IMAGE_OVERRIDES,
   IMAGE_OVERRIDES 
-} from '../utils/imageOverrides'
+} from '../../utils/imageOverrides'
 
 export default function ImageOverrideAdmin() {
   const [activeTab, setActiveTab] = useState<'user' | 'token'>('user')

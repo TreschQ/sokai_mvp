@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { ethers } from 'ethers'
 import { usePrivy } from '@privy-io/react-auth'
-import { useMetaMask } from './WalletProvider'
-import SokaiABI from '../../abis/SokaiSBT_abi.json'
-import { isAdminWallet } from '../utils/constants'
+import { useMetaMask } from '../wallet/WalletProvider'
+import SokaiABI from '../../../abis/SokaiSBT_abi.json'
+import { isAdminWallet } from '../../utils/constants'
 
 interface AdminMintForProps {
   contractAddress: string

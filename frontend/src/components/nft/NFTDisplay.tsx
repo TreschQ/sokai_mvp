@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
-import SokaiABI from '../../abis/SokaiSBT_abi.json'
-import { getDisplayImageURI, getImageOverrideInfo } from '../utils/imageOverrides'
+import SokaiABI from '../../../abis/SokaiSBT_abi.json'
+import { getDisplayImageURI, getImageOverrideInfo } from '../../utils/imageOverrides'
 
 interface NFTDisplayProps {
   tokenId: string
@@ -88,7 +88,7 @@ export default function NFTDisplay({ tokenId, contractAddress }: NFTDisplayProps
     if (tokenId && contractAddress) {
       fetchNFTMetadata()
     }
-  }, [tokenId, contractAddress, fetchNFTMetadata])
+  }, [tokenId, contractAddress])
 
   if (loading) {
     return (

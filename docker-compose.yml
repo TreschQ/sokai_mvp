@@ -1,8 +1,13 @@
 version: '3.8'
 
+networks:
+  sokai-network:
+    driver: bridge
+
 services:
   ball-detection-api:
     build: ./ai_api/
+    container_name: ia-api
     ports:
       - "8000:8000"
     volumes:
@@ -10,8 +15,27 @@ services:
     environment:
       - MODEL_PATH=/app/models/best.pt
     restart: unless-stopped
+    networks:
+      - sokai-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+
+  frontend:
+    build: ./frontend/
+    container_name: sokai-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/root/sokai_mvp
+      - /root/sokai_mvp/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=http://ia-api:8000
+      - NEXT_PUBLIC_BALL_DETECTION_API=http://ia-api:8000
+    restart: unless-stopped
+    networks:
+      - sokai-network
+    depends_on:
+      - ball-detection-api

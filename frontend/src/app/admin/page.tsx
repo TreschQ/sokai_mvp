@@ -1,4 +1,4 @@
-import ImageOverrideAdmin from '../../components/ImageOverrideAdmin'
+import ImageOverrideAdmin from '../../components/nft/ImageOverrideAdmin'
 
 export default function AdminPage() {
   return (
