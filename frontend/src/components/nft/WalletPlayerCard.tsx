@@ -19,12 +19,19 @@ export default function WalletPlayerCard({ walletAddress, contractAddress }: Wal
     if (walletAddress && contractAddress) {
       findUserTokenId()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletAddress, contractAddress])
 
   const findUserTokenId = async () => {
     try {
       setLoading(true)
       setError('')
+
+      // Vérifier que window.ethereum est disponible
+      if (!window.ethereum) {
+        setError('Wallet provider non disponible')
+        return
+      }
 
       const provider = new ethers.BrowserProvider(window.ethereum)
       const contract = new ethers.Contract(contractAddress, SokaiABI, provider)

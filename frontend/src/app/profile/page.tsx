@@ -17,10 +17,10 @@ function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    console.log('🔄 Profile page - checking wallet connection...');
-    console.log('- Thirdweb account:', thirdwebAccount);
-    console.log('- Thirdweb wallet:', thirdwebWallet);
-    console.log('- Privy user:', user);
+    // console.log('🔄 Profile page - checking wallet connection...');
+    // console.log('- Thirdweb account:', thirdwebAccount);
+    // console.log('- Thirdweb wallet:', thirdwebWallet);
+    // console.log('- Privy user:', user);
     
     // Récupération de l'adresse wallet
     let address = null;
@@ -28,12 +28,12 @@ function ProfilePage() {
     // Priorité à Thirdweb account
     if (thirdwebAccount?.address) {
       address = thirdwebAccount.address;
-      console.log('✅ Connected with Thirdweb:', address);
+      // console.log('✅ Connected with Thirdweb:', address);
     }
     // Fallback Privy
     else if (user?.wallet?.address) {
       address = user.wallet.address;
-      console.log('✅ Connected with Privy:', address);
+      // console.log('✅ Connected with Privy:', address);
     }
     // Fallback wallet object direct
     else if (thirdwebWallet) {
@@ -42,16 +42,16 @@ function ProfilePage() {
         const walletAddr = thirdwebWallet.address || thirdwebWallet.data?.address;
         if (walletAddr) {
           address = walletAddr;
-          console.log('✅ Connected with Thirdweb wallet direct:', address);
+          // console.log('✅ Connected with Thirdweb wallet direct:', address);
         }
       } catch (e) {
-        console.log('❌ Error getting wallet address:', e);
+        // console.log('❌ Error getting wallet address:', e);
       }
     }
     
-    if (!address) {
-      console.log('❌ No wallet connection found');
-    }
+    // if (!address) {
+    //   console.log('❌ No wallet connection found');
+    // }
     
     setWalletAddress(address);
     

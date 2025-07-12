@@ -54,9 +54,8 @@ export function WalletProvider({ children }: WalletProviderProps) {
     
     console.log('MetaMask détecté:', !!provider)
     console.log('Phantom présent:', !!(window as any).phantom)
+    console.log('Privy App ID utilisé:', privyAppId)
   }, [])
-
-  console.log('Privy App ID utilisé:', privyAppId)
 
   return (
     <MetaMaskContext.Provider value={{ metamaskProvider, isMetaMaskAvailable }}>

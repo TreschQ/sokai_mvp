@@ -1,26 +1,30 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
-  // Exclude blockchain directory from Next.js processing
-  webpack: (config, { isServer }) => {
+  // Optimizations for faster builds
+  webpack: (config, { dev, isServer }) => {
     // Ignore blockchain directory to avoid Babel conflicts with Hardhat
     config.watchOptions = {
       ...config.watchOptions,
-      ignored: ['**/blockchain/**', '**/node_modules/**']
+      ignored: ['**/blockchain/**', '**/node_modules/**', '**/.git/**']
+    }
+    
+    // Speed up builds in development
+    if (dev) {
+      config.optimization.splitChunks = false
+      config.optimization.minimize = false
     }
     
     return config
   },
-  // Ignore specific directories
-  experimental: {
-    appDir: true,
-    externalDir: false,
-  },
-  // Don't process blockchain files at all
+  
+  // Reduce module resolution
   pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
-  exclude: ['blockchain/**']
+  
+  // Faster builds
+  swcMinify: true,
+  
+  // Disable source maps in dev for speed
+  productionBrowserSourceMaps: false
 }
 
 module.exports = nextConfig
