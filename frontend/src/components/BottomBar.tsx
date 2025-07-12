@@ -1,12 +1,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { FaHome, FaUserCircle } from 'react-icons/fa'
+import { FaHome, FaFire } from 'react-icons/fa'
 import { PiSoccerBallFill } from 'react-icons/pi'
 
 const navItems = [
   { href: '/', label: 'Home', icon: <FaHome size={22} /> },
-  { href: '/profile', label: 'Player', icon: <FaUserCircle size={22} /> },
+  { href: '/profile', label: 'Player', icon: <FaFire size={22} /> },
   { href: '/exercises', label: 'Training', icon: <PiSoccerBallFill size={22} /> },
 ]
 
