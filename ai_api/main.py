@@ -161,8 +161,8 @@ async def detect_ball_endpoint(
         # Calculer l'intersection
         intersection_percentage = calculate_intersection_percentage(ball_bbox, target_bbox_obj)
         
-        # Vérifier si le ballon atteint la cible (au moins 50%)
-        reaches_target = intersection_percentage >= 50.0
+        # Vérifier si le ballon atteint la cible (dès qu'il touche à peine)
+        reaches_target = intersection_percentage > 0.0
         
         return DetectionResponse(
             ball_detected=True,
