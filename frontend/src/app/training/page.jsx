@@ -160,7 +160,7 @@ export default function Home() {
           tokenId: userTokenId,
           score: newScore,
           timeSpent: newTimeSpent,
-          exercise: 'Training Ball Match',
+          exercise: 'Touch and Dash',
           date: new Date().toISOString().split('T')[0]
         })
       });
@@ -175,7 +175,7 @@ Score cette session: ${score} points
 Score total: ${newScore} points  
 Niveau: ${getLevel(newScore)}
 Temps total: ${formatTimeDisplay(newTimeSpent)}
-Exercice: Training Ball Match
+Exercice: Touch and Dash
 
 Transaction: ${result.txHash?.substring(0, 10)}...`);
 
@@ -198,7 +198,7 @@ Transaction: ${result.txHash?.substring(0, 10)}...`);
           tokenId: userTokenId,
           score: newScore,
           timeSpent: newTimeSpent,
-          exercise: 'Training Ball Match',
+          exercise: 'Touch and Dash',
           date: new Date().toISOString().split('T')[0]
         });
 
