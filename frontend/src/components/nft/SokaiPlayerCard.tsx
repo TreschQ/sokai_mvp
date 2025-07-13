@@ -102,9 +102,9 @@ export default function SokaiPlayerCard({ walletAddress, contractAddress }: Soka
     }
   }
 
-  // Convert seconds to minutes
+  // Convert seconds to minutes with decimal precision
   const formatMinutes = (totalSeconds: number): number => {
-    return Math.floor(totalSeconds / 60)
+    return Math.round((totalSeconds / 60) * 10) / 10 // Arrondi à 1 décimale
   }
 
   if (loading) {
