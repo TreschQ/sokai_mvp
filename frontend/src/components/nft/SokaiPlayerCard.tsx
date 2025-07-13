@@ -71,6 +71,7 @@ export default function SokaiPlayerCard({ walletAddress, contractAddress }: Soka
       }
 
       setTokenId(foundTokenId)
+      console.log('Token ID trouvé:', foundTokenId)
 
       // Récupérer les stats du token
       const tokenURI = await contract.tokenURI(foundTokenId)
@@ -90,6 +91,7 @@ export default function SokaiPlayerCard({ walletAddress, contractAddress }: Soka
         }
 
         setStats(statsData)
+        console.log('Date du SBT:', statsData.date)
       } else {
         throw new Error("Invalid token URI format")
       }

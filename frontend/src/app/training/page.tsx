@@ -19,7 +19,7 @@ interface Target {
 export default function Home() {
   const [temps, setTemps] = useState<number>(30);
   const [showScore, setShowScore] = useState(false);
-  const [nombrePoints, setNombrePoints] = useState<number>(1);
+  const [nombrePoints, setNombrePoints] = useState<number>(0);
   const [nbEssaie, setNbEssaie] = useState<number>(0);
   const [target, setTarget] = useState<Target>(genererPositionCible(nbEssaie));
   const [isTuched, setIsTouched] = useState<boolean>(false);
@@ -345,4 +345,3 @@ function trouverResultats(data: any): boolean {
     return !!data["reaches_target"];
   }
 }
-
