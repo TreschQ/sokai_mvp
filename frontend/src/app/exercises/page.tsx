@@ -2,6 +2,10 @@
 
 import { useRouter } from 'next/navigation'
 import BottomBar from '@/components/BottomBar'
+import Image from 'next/image'
+import { FaTrophy } from 'react-icons/fa'
+import { useAutoMint } from '@/hooks/useAutoMint'
+import { usePlayerScore } from '@/hooks/usePlayerScore'
 
 const exercises = [
   {
@@ -11,24 +15,15 @@ const exercises = [
     difficulty: 'Beginner',
     duration: '30 sec',
   },
-  {
-    id: 2,
-    title: 'Ball Control',
-    description: 'Improve your touch',
-    difficulty: 'Intermediate',
-    duration: '3 min',
-  },
-  {
-    id: 3,
-    title: 'Shooting Accuracy',
-    description: 'Perfect your aim',
-    difficulty: 'Advanced',
-    duration: '3 min',
-  },
+  
 ]
 
 export default function ExercisesPage() {
   const router = useRouter()
+  
+  // Récupération du tokenId et du score
+  const { tokenId, isReady } = useAutoMint()
+  const { score: performanceScore } = usePlayerScore({ tokenId, enabled: isReady && !!tokenId })
 
   const handleExerciseClick = (exerciseId: number) => {
     if (exerciseId === 1) {
@@ -37,55 +32,53 @@ export default function ExercisesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A] text-white pb-24">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center mb-8 text-[#3AA93A]">
-          Exercices
-        </h1>
-        
-        <div className="space-y-4">
-          {exercises.map((exercise) => (
-            <div
-              key={exercise.id}
-              onClick={() => handleExerciseClick(exercise.id)}
-              className={`bg-[#23272F] border border-gray-800 rounded-lg p-6 cursor-pointer transition-all duration-300 hover:border-[#3AA93A] hover:shadow-lg ${
-                exercise.id === 1 ? 'hover:bg-[#2A2F3A]' : 'opacity-60'
-              }`}
-            >
-              <div className="flex justify-between items-start mb-3">
-                <h2 className="text-xl font-semibold text-white">
-                  {exercise.title}
-                </h2>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  exercise.difficulty === 'Beginner' ? 'bg-green-900 text-green-300' :
-                  exercise.difficulty === 'Intermediate' ? 'bg-yellow-900 text-yellow-300' :
-                  'bg-red-900 text-red-300'
-                }`}>
-                  {exercise.difficulty}
-                </span>
-              </div>
-              
-              <p className="text-gray-400 mb-3">{exercise.description}</p>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">
-                  Duration: {exercise.duration}
-                </span>
-                {exercise.id === 1 && (
-                  <button className="bg-[#3AA93A] text-white px-4 py-2 rounded-lg font-medium hover:bg-[#2E8B2E] transition-colors">
-                    Start training
-                  </button>
-                )}
-              </div>
-              
-              {exercise.id !== 1 && (
-                <div className="mt-3 text-sm text-gray-500 italic">
-                  Bientôt disponible
-                </div>
-              )}
-            </div>
-          ))}
+    <div className="min-h-screen bg-gradient-to-b from-[#0D0F11] to-[#006B15] text-white pb-24 flex flex-col">
+      {/* BACK button en haut à gauche */}
+      <div className="fixed top-8 left-4 z-50 flex items-center h-[50px]">
+        <button 
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-white font-sans italic font-bold"
+        >
+          <span className="text-2xl">‹</span>
+          <span>BACK</span>
+        </button>
+      </div>
+
+      {/* Sokai Token et points en haut à droite */}
+      <div className="fixed top-8 right-4 z-50 flex items-center gap-2 h-[50px]">
+        <Image 
+          src="/SOKAI_TOKENFC.png" 
+          alt="Sokai Token" 
+          width={50} 
+          height={50}
+          className="object-contain"
+        />
+        <div className="flex flex-col items-center text-sm font-medium">
+          <span className="text-[#7FB923] font-bold italic font-sans">{performanceScore || 0}</span>
+          <span className="text-white text-xs font-bold italic font-sans">POINTS</span>
         </div>
+        <FaTrophy className="text-[#7FB923] text-3xl ml-2" />
+      </div>
+
+      {/* Logo et bouton START GAME centrés verticalement */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
+        <Image 
+          src="/sokaiclub.png" 
+          alt="Sokai Club Logo" 
+          width={250} 
+          height={250}
+          className="mb-12"
+        />
+        <button 
+          onClick={() => handleExerciseClick(1)}
+          className="bg-[#7FB923] text-white px-12 py-4 rounded-3xl border border-white font-bold text-xl hover:bg-[#6A9B1F] transition-colors shadow-lg flex items-center justify-between gap-8 w-[18rem]"
+        >
+          <div className="flex flex-col items-start font-sans italic text-2xl">
+            <span>START</span>
+            <span>GAME</span>
+          </div>
+          <span className="text-white text-5xl">▶</span>
+        </button>
       </div>
       
       <BottomBar />

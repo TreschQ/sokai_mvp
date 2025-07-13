@@ -38,7 +38,7 @@ async def startup_event():
     global model
     try:
         # Charger le modèle entraîné
-        model = YOLO("/app/models/best.pt")
+        model = YOLO("./models/best.pt")
         logger.info("Modèle YOLO chargé avec succès")
     except Exception as e:
         logger.error(f"Erreur lors du chargement du modèle: {e}")

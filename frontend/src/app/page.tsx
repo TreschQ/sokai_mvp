@@ -35,7 +35,7 @@ export default function HomePage() {
   }, [thirdwebWallet, router]);
 
   return (
-    <main className="min-h-screen flex flex-col justify-between bg-gradient-to-b from-[#23272F] to-[#444857] w-full px-4 py-8">
+    <main className="min-h-screen flex flex-col justify-between bg-gradient-to-b from-[#0D0F11] to-[#006B15] w-full px-4 py-8">
       <div className="flex flex-col items-center justify-center flex-1 w-full">
         <h1 className="text-3xl font-bold text-white mb-3 text-center">Welcome to Sokai Club</h1>
         <p className="text-white text-base mb-8 text-center">Join the club and track your football journey on-chain.</p>

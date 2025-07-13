@@ -4,8 +4,10 @@ import { useEffect, useState, Suspense } from 'react'
 import { usePrivy } from '@privy-io/react-auth'
 import { useSearchParams } from 'next/navigation'
 import { useAutoMint } from '@/hooks/useAutoMint'
-import WalletPlayerCard from '@/components/nft/WalletPlayerCard'
+import { usePlayerScore } from '@/hooks/usePlayerScore'
+import SokaiPlayerCard from '@/components/nft/SokaiPlayerCard'
 import BottomBar from '@/components/BottomBar'
+import Header from '@/components/Header'
 
 function ProfileContent() {
   const { user, logout: privyLogout } = usePrivy()
@@ -23,6 +25,12 @@ function ProfileContent() {
     isMinting,
     refresh 
   } = useAutoMint()
+
+  // Hook pour récupérer le score de performance
+  const { score: performanceScore } = usePlayerScore({ 
+    tokenId, 
+    enabled: isReady && !!tokenId 
+  })
   
   // Gestion du refresh depuis les paramètres URL
   useEffect(() => {
@@ -84,7 +92,7 @@ function ProfileContent() {
     if (isReady && walletAddress && tokenId) {
       return (
         <div className="w-full max-w-xs mx-auto">
-          <WalletPlayerCard 
+          <SokaiPlayerCard 
             key={refreshKey}
             walletAddress={walletAddress}
             contractAddress={process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!}
@@ -122,12 +130,10 @@ function ProfileContent() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col justify-between bg-gradient-to-b from-[#23272F] to-[#444857] w-full px-2 py-6">
-      <header className="flex items-center justify-between w-full max-w-xs mx-auto">
-        <h1 className="text-base font-bold text-white text-center flex-1">My SOKAI PASSPORT</h1>
-      </header>
+    <main className="min-h-screen flex flex-col justify-between bg-[#71E582] w-full px-2 py-6">
+      <Header performanceScore={performanceScore} />
       
-      <div className="flex flex-col items-center justify-center flex-1 w-full -mt-16 gap-4">
+      <div className="flex flex-col items-center justify-center flex-1 w-full gap-4">
         {/* Bouton temporaire pour déconnexion Privy */}
         {user?.wallet && (
           <button
@@ -138,7 +144,7 @@ function ProfileContent() {
           </button>
         )}
         
-        {/* Debug info si nécessaire */}
+        {/* Debug info si nécessaire 
         {process.env.NODE_ENV === 'development' && walletAddress && (
           <div className="bg-blue-900/20 rounded-lg p-3 mb-4 w-full max-w-xs mx-auto text-xs">
             <div className="text-white">
@@ -148,6 +154,7 @@ function ProfileContent() {
             </div>
           </div>
         )}
+          */}
         
         {renderContent()}
       </div>

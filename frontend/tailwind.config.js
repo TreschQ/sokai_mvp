@@ -17,6 +17,9 @@ module.exports = {
         success: '#10b981',
         error: '#ef4444',
       },
+      fontFamily: {
+        'esport': ['EsportGraph', 'sans-serif'],
+      },
     },
   },
   plugins: [],

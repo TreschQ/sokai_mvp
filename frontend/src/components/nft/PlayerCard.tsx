@@ -148,7 +148,7 @@ export default function PlayerCard({
   return (
     <div className="bg-gradient-to-br from-black via-[#0e2d1a] to-[#1a4d2e] border border-green-700 rounded-xl p-6 shadow-lg">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-white">🏆 SOKAI Player Card</h3>
+        <h3 className="text-xl font-bold text-white font-esport">SOKAI CLUB</h3>
         <div className="text-sm text-green-200">Token #{tokenId}</div>
       </div>
       {/* Player Header */}
