@@ -20,10 +20,10 @@ RUN npm install
 COPY . .
 
 # Construire l'application
-#RUN npm run build
+RUN npm run build
 # changer pour build
 
 EXPOSE 3000
 
 # Démarrer l'application
-CMD ["npm", "run","dev"]
+CMD ["npm", "start"]
