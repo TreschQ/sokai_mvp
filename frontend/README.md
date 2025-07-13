@@ -69,6 +69,21 @@ interface PlayerStats {
 }
 ```
 
+## Update Stats Example
+
+```
+🔄 Updating stats with admin wallet: 0xbE26738753aB8A8B7ca9CA4407f576c23097A114
+📊 Stats to update: {
+  tokenId: '6',
+  score: 5,
+  timeSpent: 120,
+  exercise: 'Touch and Dash',
+  date: '2025-07-13'
+}
+📡 Transaction sent: 0xfc6dff1dd87fa045ee45e70a4b152cecfb5e35ff6e312c6004a296a900eca0c8
+✅ Transaction confirmed in block: 26255265
+```
+
 ---
 
 ## 🎯 Why Use SBTs for Sports?
@@ -197,7 +212,7 @@ The app will be available at http://localhost:3000
 - **TypeScript**
 - **TailwindCSS**
 - **ethers.js** (blockchain interaction)
-- **Privy** (wallet connection)
+- **Thirdweb** (wallet connection Metamask, or Socios)
 
 ---
 
@@ -238,15 +253,6 @@ The smart contract is already deployed on Chiliz Spicy Testnet:
 - Make sure your Privy app is configured for Chiliz Spicy Testnet
 - The app includes network switching functionality for user convenience
 - Future updateStats functionality is scaffolded in `/src/hooks/useUpdateStats.tsx`
-
----
-
-## 🙋‍♂️ Need help?
-
-- [Next.js docs](https://nextjs.org/docs)
-- [Privy docs](https://docs.privy.io/)
-- [ethers.js docs](https://docs.ethers.org/)
-- Hackathon Telegram/Discord, or just ask Ty!
 
 ---
 
