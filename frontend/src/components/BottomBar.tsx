@@ -1,13 +1,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { FaHome, FaFire } from 'react-icons/fa'
-import { PiSoccerBallFill } from 'react-icons/pi'
+import { FaHome, FaFire, FaChartBar } from 'react-icons/fa'
 
 const navItems = [
   { href: '/', label: 'Home', icon: <FaHome size={22} /> },
   { href: '/profile', label: 'Player', icon: <FaFire size={22} /> },
-  { href: '/exercises', label: 'Training', icon: <PiSoccerBallFill size={22} /> },
+  { href: '/exercises', label: 'Training', icon: <FaChartBar size={22} /> },
 ]
 
 import { useRouter } from 'next/navigation'
@@ -28,11 +27,10 @@ const BottomBar = () => {
             key={item.href}
             type="button"
             onClick={() => handleNav(item.href)}
-            className={`flex flex-col items-center justify-center flex-1 h-full py-2 ${pathname === item.href ? 'text-[#3AA93A]' : 'text-white'} text-xs font-medium transition-colors cursor-pointer`}
+            className={`flex flex-col items-center justify-center flex-1 h-full py-2 ${pathname === item.href ? 'text-[#90CB25]' : 'text-white'} text-xs font-medium transition-colors cursor-pointer`}
             aria-label={item.label}
           >
-            <span className="mb-0.5">{item.icon}</span>
-            <span className="text-[11px] leading-none">{item.label}</span>
+            <span>{item.icon}</span>
           </button>
         ))}
       </div>
