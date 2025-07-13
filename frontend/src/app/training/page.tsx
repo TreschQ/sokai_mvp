@@ -175,15 +175,15 @@ export default function Home() {
   }, [target, temps, countdown]);
 
   return (
-    <div style={{ position: 'relative', width: 640, height: 480 }}>
+    <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       {(countdown > 0) && (
         <div
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
-            width: 640,
-            height: 480,
+            width: '100%',
+            height: '100%',
             background: 'rgba(0,0,0,0.7)',
             color: 'white',
             fontSize: 80,
@@ -202,8 +202,8 @@ export default function Home() {
             position: 'absolute',
             top: 0,
             left: 0,
-            width: 640,
-            height: 480,
+            width: '100%',
+            height: '100%',
             background: 'rgba(0,0,0,0.85)',
             color: '#7ed957',
             fontSize: 50,
@@ -223,8 +223,8 @@ export default function Home() {
             position: 'absolute',
             top: 0,
             left: 0,
-            width: 640,
-            height: 480,
+            width: '100%',
+            height: '100%',
             color: '#7ed957',
             fontSize: 50,
             display: 'flex',
@@ -241,15 +241,13 @@ export default function Home() {
         id="webcam"
         autoPlay
         playsInline
-        width={640}
-        height={480}
-        style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, transform: 'rotateY(180deg)' }} // Inverser horizontalement
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 1, transform: 'rotateY(180deg)' }} // Inverser horizontalement
       />
       <canvas
         id="overlay"
         width={640}
         height={480}
-        style={{ position: 'absolute', top: 0, left: 0, zIndex: 2, pointerEvents: 'none', transform: 'rotateY(180deg)'}}
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 2, pointerEvents: 'none', transform: 'rotateY(180deg)'}}
       />
       <div
         id="nbPoint"
