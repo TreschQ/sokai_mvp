@@ -125,7 +125,7 @@ export default function Home() {
       try {
         const data = await envoyerImage(blob, target.target_bbox);
         if (trouverResultats(data)) {
-          
+          setIsTouched(true);
           setNombrePoints(p => p + 5);
           setNbEssaie(e => e + 1);
           const nouvelleCible = genererPositionCible(nbEssaie);
@@ -289,7 +289,7 @@ export default function Home() {
 function genererPositionCible(nbEssaie : number): Target {
   const rayon = 30; // Rayon de la cible
   if (nbEssaie% 2 === 0) {
-    const x = 100;
+    const x = 200;
     const y = 400;
     return {
     target_bbox: {
@@ -343,4 +343,3 @@ function trouverResultats(data: any): boolean {
     return !!data["reaches_target"];
   }
 }
-
