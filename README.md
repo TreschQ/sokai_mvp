@@ -1,62 +1,101 @@
 # 🏆 SOKAI MVP - Football Performance Soulbound Tokens
 
 ## 📖 Concept
-SOKAI is a football fitness app leveraging Soulbound Tokens (SBTs) on the Chiliz blockchain to certify and prove players’ real-world performance.
+SOKAI is a football fitness app leveraging Soulbound Tokens (SBTs) on the Chiliz blockchain to certify and prove players' real-world performance through AI-powered ball detection.
 
 ---
 
-## 🎯 What is a SBT (Soulbound Token)?
+## 🎯 What is a Soulbound Token (SBT)?
 
 A Soulbound Token is a special type of NFT with unique characteristics:
 
-- 🔒 **Non-transferable**: Unlike classic NFTs, cannot be sold, exchanged, or transferred.
-- 👤 **Permanent**: Forever attached to a single wallet address.
-- 🏆 **Personal Certification**: Perfect for certifying achievements, diplomas, or performances.
-- 🛡️ **Proof of Authenticity**: Impossible to fake, guaranteed by blockchain.
+- 🔒 **Non-transferable**: Cannot be sold, exchanged, or transferred
+- 👤 **Wallet-bound**: Forever attached to a single wallet address
+- 🏆 **Performance Certification**: Perfect for certifying achievements and athletic performance
+- 🛡️ **Immutable Proof**: Blockchain-guaranteed authenticity
+
+---
+
+## 🏗️ Tech Stack
+
+### Frontend
+- **Next.js 14** (App Directory, TypeScript)
+- **TailwindCSS** for styling
+- **Privy** + **Thirdweb** for multi-wallet connection
+- **ethers.js** for blockchain interactions
+- **React Icons** for UI components
+
+### AI Detection API
+- **Python FastAPI** for real-time ball detection
+- **YOLOv8** (Ultralytics) for computer vision
+- **OpenCV** integration for live camera feed
+- **Docker** containerization
+
+### Blockchain
+- **Solidity** smart contract on Chiliz Spicy Testnet
+- **Chiliz Chain** (Chain ID: 88882)
+- **Soulbound Token** implementation with admin controls
 
 ---
 
 ## 🏃‍♂️ User Flow – From Exercise to SBT
 
 1. **Wallet Connection**
-   - The user connects their wallet (Privy/MetaMask).
-   - The frontend auto-detects the user’s wallet address.
-2. **“Touch & Dash” Exercise**
-   - The user performs their football exercises.
-   - The app measures and records:
-     - Score (0-100) based on performance
-     - Time spent (training minutes)
-     - Date of the session
-     - Type of exercise ("Touch & Dash")
+   - Connect wallet (Privy/MetaMask/Thirdweb)
+   - Auto-detect user's wallet address
+
+2. **"Touch & Dash" Exercise**
+   - Perform football training exercises
+   - AI detection tracks ball touches and movement
+   - Records: Score (0-100), Time, Date, Exercise type
+
 3. **Performance Recording**
-   - Data is entered in the mint form.
-   - `userId` is automatically set as the wallet address.
-   - Optional profile photo via `imageURI`.
-4. **Minting the SBT (Once per Wallet)**
-   - Blockchain security: Only one SBT per wallet address.
-   - Metadata is permanently stored on Chiliz.
-   - Creates an immutable proof of performance.
+   - Data automatically populated in mint form
+   - `userId` set as wallet address
+   - Optional profile photo upload
+
+4. **SBT Minting** (One per wallet)
+   - Blockchain enforced: Only one SBT per wallet
+   - Metadata permanently stored on Chiliz
+   - Creates immutable performance proof
 
 ---
 
-## 🛡️ Smart Contract Safeguards & Rules
+## 🛡️ Smart Contract Architecture
 
 ```solidity
-// Only one SBT per wallet
-require(!_hasMinted[msg.sender], "One SBT per wallet allowed");
-
-// Non-transferable (Soulbound)
-function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override {
-    if (from != address(0) && to != address(0)) {
-        revert("Soulbound: non-transferable");
+// Core SBT functionality
+contract SokaiSBT is ERC721, Ownable {
+    mapping(address => bool) private _hasMinted;
+    
+    // Only one SBT per wallet
+    require(!_hasMinted[msg.sender], "One SBT per wallet allowed");
+    
+    // Non-transferable (Soulbound)
+    function _beforeTokenTransfer(
+        address from, 
+        address to, 
+        uint256 tokenId, 
+        uint256 batchSize
+    ) internal override {
+        if (from != address(0) && to != address(0)) {
+            revert("Soulbound: non-transferable");
+        }
+        super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
-    super._beforeTokenTransfer(from, to, tokenId, batchSize);
+    
+    // Admin can update stats for corrections
+    function updateStats(uint256 tokenId, PlayerStats memory newStats) 
+        external onlyOwner {
+        playerStats[tokenId] = newStats;
+        emit StatsUpdated(tokenId, newStats);
+    }
 }
 ```
 
 ---
 
-## 🎯 On-Chain Metadata
+## 🎯 On-Chain Metadata Structure
 
 ```typescript
 interface PlayerStats {
@@ -64,86 +103,7 @@ interface PlayerStats {
   timeSpent: number    // Training minutes
   exercise: string     // "Touch & Dash"
   date: string         // Session date
-  userId: string       // Wallet address (identity)
-  imageURI: string     // Profile photo (optional)
-}
-```
-
-## Update Stats Example
-
-```
-🔄 Updating stats with admin wallet: 0xbE26738753aB8A8B7ca9CA4407f576c23097A114
-📊 Stats to update: {
-  tokenId: '6',
-  score: 5,
-  timeSpent: 120,
-  exercise: 'Touch and Dash',
-  date: '2025-07-13'
-}
-📡 Transaction sent: 0xfc6dff1dd87fa045ee45e70a4b152cecfb5e35ff6e312c6004a296a900eca0c8
-✅ Transaction confirmed in block: 26255265
-```
-
----
-
-## 🎯 Why Use SBTs for Sports?
-
-- **Proof of Activity**: Blockchain-based proof of real physical activity
-- **Gamification**: Collect non-falsifiable sporting achievements
-- **Social Proof**: Share certified, verifiable performances
-- **Permanent History**: Track progress over time
-- **Chiliz Ecosystem**: Fully compatible with Fan Tokens
-- **Web2-like UX**: Familiar UI, blockchain under the hood
-
----
-
-## 🔗 Data Architecture
-
-```sql
-Frontend (Web2-like) ←→ Smart Contract SBT ←→ Chiliz Blockchain
-     │                          │
-     │                      ┌───▼───┐
-     │                      │ Stats │
-     │                      ├───────┤
-     └─ Profile Photo       │ Score │
-     └─ UI Components       │ Time  │
-                            │ Date  │ 
-                            │ User  │
-                            └───────┘
-```
-
----
-
-## 🔄 Advanced Smart Contract Features
-
-- Admin can update existing stats (for corrections)
-- Gasless minting: Admin can mint for users
-- Read functions: Public performance checks
-- Blockchain events: Full on-chain audit trail
-
----
-
-## 💡 Use Cases & Impact
-
-- **Sporting Certification**: Digital performance diplomas
-- **Motivation**: Permanent achievements encourage activity
-- **Competitions**: Leaderboards based on verified data
-- **Club Partnerships**: Integrate with professional football teams
-- **Chiliz Ecosystem**: Synergy with club Fan Tokens
-
-The SBT becomes a "permanent digital certificate" of each user’s sporting achievements, impossible to fake thanks to the Chiliz blockchain. 🏆⚽
-
----
-
-## ⚽ SBT Metadata Structure
-
-```typescript
-interface PlayerStats {
-  score: number        // Performance score (0-100)
-  timeSpent: number    // Training time (minutes)
-  exercise: string     // Exercise type ("Touch & Dash")
-  date: string         // Session date
-  userId: string       // Player ID (wallet)
+  userId: string       // Wallet address
   imageURI: string     // Profile photo (optional)
 }
 ```
@@ -152,108 +112,138 @@ interface PlayerStats {
 
 ## 🚀 Quick Start
 
-1. **Clone the project**
+### Option 1: Direct Development
 
+1. **Clone the repository**
 ```bash
 git clone <repo-url>
-cd sokai-chiliz
+cd sokai_mvp
 ```
 
-2. **Install dependencies**
-
+2. **Frontend setup**
 ```bash
-yarn install
-# or
+cd frontend
 npm install
 ```
 
-3. **Set up environment variables**
-
-Create a `.env.local` file at the project root, based on `.env.example`:
-
+3. **Environment configuration**
+Create `.env.local` in `/frontend/`:
 ```env
 PRIVY_APP_ID=your-privy-app-id
 NEXT_PUBLIC_CONTRACT_ADDRESS=0xd7ece5177d3b3ad4e26cd9f65facb525eae0afe6
 NEXT_PUBLIC_CHILIZ_RPC=https://spicy-rpc.chiliz.com/
 NEXT_PUBLIC_CHAIN_ID=88882
+ADMIN_PRIVATE_KEY=your-admin-private-key
+NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your-thirdweb-client-id
 ```
-Replace `your-privy-app-id` with your Privy project key.
 
-4. **Place your contract's ABI**
-
-Put your ABI file (`SokaiSBT_abi.json`) in the `/abis` directory.
-(Export it from Remix > Compilation Details > Copy ABI)
-
-5. **Run the development server**
-
+4. **Run development**
 ```bash
-yarn dev
-# or
 npm run dev
 ```
 
-The app will be available at http://localhost:3000
+Frontend available at: http://localhost:3000
+
+### Option 2: Docker (Full Stack)
+
+1. **Start all services**
+```bash
+docker-compose up -d
+```
+
+This launches:
+- Frontend: http://localhost:3000
+- AI API: http://localhost:8000
+- Ball detection with YOLO model
+
+2. **View logs**
+```bash
+docker-compose logs -f
+```
 
 ---
 
-## 🧑‍💻 How to Use
+## 🔗 Architecture Overview
 
-- Connect your wallet (Privy or MetaMask)
-- Fill in the mint form (score, timeSpent, exercise, date, userId, imageURI)
-- Click "Mint my SOKAI NFT"
-- Watch the transaction status (pending, success, error)
-- After mint, the NFT and its metadata are displayed (reads from tokenURI)
-
----
-
-## ⚙️ Tech Stack
-
-- **Next.js 14** (App Directory)
-- **TypeScript**
-- **TailwindCSS**
-- **ethers.js** (blockchain interaction)
-- **Thirdweb** (wallet connection Metamask, or Socios)
+```
+Frontend (Next.js) ←→ AI API (FastAPI) ←→ Smart Contract (Chiliz)
+     │                     │                      │
+     │                 ┌───▼───┐              ┌───▼───┐
+     │                 │ YOLO  │              │ SBT   │
+     │                 │ Model │              │ Stats │
+     └─ Wallet         │ Ball  │              │ Score │
+     └─ UI             │ Track │              │ Time  │
+                       └───────┘              │ Date  │
+                                              └───────┘
+```
 
 ---
 
-## 📝 Key Files
+## ⚙️ Key Features
 
-- `/src/app`: main app components
-- `/abis/SokaiSBT_abi.json`: your contract ABI
-- `.env.local`: config (Privy, contract address, RPC)
-- `/src/components/MintForm.tsx`: mint form and logic
-- `/src/components/NFTDisplay.tsx`: NFT metadata display
-- `/src/components/WalletConnect.tsx`: wallet connection logic
-- `/src/components/NetworkChecker.tsx`: network validation
+### Multi-Wallet Support
+- **Privy**: Primary wallet connection
+- **Thirdweb**: Alternative provider
+- **MetaMask**: Direct connection fallback
+
+### Admin System
+- Admin wallet: `0xbE26738753aB8A8B7ca9CA4407f576c23097A114`
+- Mint SBTs for users
+- Update existing stats
+- Override NFT images
+
+### AI Integration
+- Real-time ball detection
+- Performance scoring algorithm
+- Live camera feed processing
 
 ---
 
-## 🧩 Bonus / Optional
+## 🔄 Smart Contract Deployment
 
-- ✅ Detect wrong network (alert if not on Chiliz)
-- ✅ Prepare a hook/component for the updateStats function
-- ✅ Add animations and UX polish for successful mint
-- ✅ MetaMask fallback connection
-
----
-
-## 🟢 Testnet Demo
-
-The smart contract is already deployed on Chiliz Spicy Testnet:
-
-- **Address**: `0xd7ece5177d3b3ad4e26cd9f65facb525eae0afe6`
+**Chiliz Spicy Testnet:**
+- **Contract**: `0xd7ece5177d3b3ad4e26cd9f65facb525eae0afe6`
 - **Chain ID**: `88882`
 - **RPC**: https://spicy-rpc.chiliz.com/
 
 ---
 
-## 🔧 Development Notes
+## 🧑‍💻 Development Commands
 
-- Replace the placeholder ABI in `/abis/SokaiSBT_abi.json` with your actual contract ABI
-- Make sure your Privy app is configured for Chiliz Spicy Testnet
-- The app includes network switching functionality for user convenience
-- Future updateStats functionality is scaffolded in `/src/hooks/useUpdateStats.tsx`
+```bash
+# Frontend
+npm run dev        # Development server
+npm run build      # Production build
+npm run lint       # Code linting
+
+# Docker
+docker-compose up --build    # Rebuild and start
+docker-compose down          # Stop services
+
+# AI API (in /ai_api/)
+python main.py              # Start API server
+pip install -r requirements.txt
+```
 
 ---
 
-## 🚀 Let's mint
+## 📁 Key Files
+
+- `/frontend/src/components/nft/` - NFT minting and display
+- `/frontend/src/hooks/` - Blockchain interaction hooks
+- `/frontend/abis/SokaiSBT_abi.json` - Contract ABI
+- `/ai_api/main.py` - Ball detection API
+- `/ai_api/models/best.pt` - YOLOv8 model
+- `/frontend/smartcontracts/SokaiSBT.sol` - Smart contract
+
+---
+
+## 💡 Use Cases
+
+- **Athletic Certification**: Immutable performance records
+- **Training Motivation**: Gamified fitness tracking
+- **Club Integration**: Partner with football teams
+- **Talent Scouting**: Verified skill assessments
+- **Fan Engagement**: Chiliz ecosystem synergy
+
+The SBT becomes a permanent digital certificate of athletic achievement, impossible to fake thanks to blockchain technology and AI verification. 🏆⚽
