@@ -19,8 +19,9 @@ interface Target {
 export default function Home() {
   const [temps, setTemps] = useState<number>(30);
   const [showScore, setShowScore] = useState(false);
-  const [nombrePoints, setNombrePoints] = useState<number>(0);
-  const [target, setTarget] = useState<Target>(genererPositionCible());
+  const [nombrePoints, setNombrePoints] = useState<number>(1);
+  const [nbEssaie, setNbEssaie] = useState<number>(0);
+  const [target, setTarget] = useState<Target>(genererPositionCible(nbEssaie));
   const [isTuched, setIsTouched] = useState<boolean>(false);
   const [countdown, setCountdown] = useState<number>(3);
   const [isGameFinished, setIsGameFinished] = useState<boolean>(false);
@@ -83,7 +84,12 @@ export default function Home() {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'user' // Caméra avant (selfie)
+      },
+      audio: false
+    })
       .then(stream => {
         video.srcObject = stream;
       })
@@ -97,6 +103,10 @@ export default function Home() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    console.log("showScore changed to:", showScore);
+  }, [showScore]);
 
   // Capture et traitement d'image toutes les X ms
   useEffect(() => {
@@ -115,9 +125,10 @@ export default function Home() {
       try {
         const data = await envoyerImage(blob, target.target_bbox);
         if (trouverResultats(data)) {
+          
           setNombrePoints(p => p + 5);
-          setIsTouched(true);
-          const nouvelleCible = genererPositionCible();
+          setNbEssaie(e => e + 1);
+          const nouvelleCible = genererPositionCible(nbEssaie);
           setTarget(nouvelleCible);
         }
       } catch (e) {
@@ -126,6 +137,19 @@ export default function Home() {
     }, 500); // toutes les 500ms
     return () => clearInterval(interval);
   }, [temps, target, isGameFinished]);
+
+  useEffect(() => {
+    if (isTuched) {
+      setShowScore(true);    // Ajoute l'élément au DOM
+      setIsTouched(false);
+      const timer = setTimeout(() => {
+        setShowScore(false); // Retire l'élément du DOM
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isTuched]);
+
+  
 
   // Affichage du cercle cible sur le canvas
   useEffect(() => {
@@ -193,7 +217,7 @@ export default function Home() {
          {isLoading && <div style={{fontSize: 20, marginTop: 20}}>Sauvegarde en cours...</div>}
         </div>
       )}
-      {(showScore) && (
+      {showScore && (
         <div
           style={{
             position: 'absolute',
@@ -219,13 +243,13 @@ export default function Home() {
         playsInline
         width={640}
         height={480}
-        style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
+        style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, transform: 'rotateY(180deg)' }} // Inverser horizontalement
       />
       <canvas
         id="overlay"
         width={640}
         height={480}
-        style={{ position: 'absolute', top: 0, left: 0, zIndex: 2, pointerEvents: 'none' }}
+        style={{ position: 'absolute', top: 0, left: 0, zIndex: 2, pointerEvents: 'none', transform: 'rotateY(180deg)'}}
       />
       <div
         id="nbPoint"
@@ -264,15 +288,12 @@ export default function Home() {
 }
 
 // Génère une nouvelle cible aléatoire
-function genererPositionCible(): Target {
+function genererPositionCible(nbEssaie : number): Target {
   const rayon = 30; // Rayon de la cible
-  const x = Math.floor(Math.random() * (640 - 2 * rayon)) + rayon;
-  // Limite y au dernier quart de l'écran (360 à 480)
-  const minY = 480 * 0.80 + rayon; // 360 + rayon
-  const maxY = 480 - rayon;
-  const y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
-
-  return {
+  if (nbEssaie% 2 === 0) {
+    const x = 100;
+    const y = 400;
+    return {
     target_bbox: {
       x1: x - rayon,
       y1: y - rayon,
@@ -281,6 +302,21 @@ function genererPositionCible(): Target {
     },
     position: [x, y, rayon]
   };
+  }
+  else {
+    const x = 600;
+    const y = 400;
+    return {
+    target_bbox: {
+      x1: x - rayon,
+      y1: y - rayon,
+      x2: x + rayon,
+      y2: y + rayon
+    },
+    position: [x, y, rayon]
+  };
+  }
+  
 }
 
 // Envoie l'image au backend
@@ -303,11 +339,10 @@ async function envoyerImage(imageBlob: Blob, bbox: TargetBbox): Promise<any> {
 
 // Analyse la réponse du backend
 function trouverResultats(data: any): boolean {
-  console.log("Résultats reçus :", data);
   if (data["ball_detected"] === false) {
-    console.log("Aucune balle détectée");
     return false;
   } else {
     return !!data["reaches_target"];
   }
 }
+

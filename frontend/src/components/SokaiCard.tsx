@@ -11,7 +11,7 @@ interface SokaiCardProps {
 const SokaiCard: React.FC<SokaiCardProps> = ({ 
   className = "", 
   minutesPlayed = 0, 
-  gamesPlayed = 5, 
+  gamesPlayed = "5", 
   score = 0 
 }) => {
   return (
