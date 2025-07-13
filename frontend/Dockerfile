@@ -1,17 +1,28 @@
-FROM node:22
+FROM node:22-alpine
 
-RUN apt-get update && apt-get install -y python3-pip
+# Installer les dépendances système nécessaires
+RUN apk add --no-cache python3 make g++ curl
 
-# Définir le dossier de travail pour l'app Node
-WORKDIR /root/sokai_mvp
+# Définir le dossier de travail
+WORKDIR /app
 
-# Copier les fichiers de ton projet
+# Copier les fichiers de configuration
 COPY package*.json ./
+COPY tailwind.config.js ./
+COPY postcss.config.js ./
+COPY next.config.js ./
+COPY tsconfig.json ./
+
+# Installer toutes les dépendances
+RUN npm ci
+
+# Copier le code source
 COPY . .
 
-# Installer les dépendances Node.js
-RUN npm install
+# Construire l'application
+RUN npm run build
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+# Démarrer l'application
+CMD ["npm", "start"]

@@ -20,11 +20,13 @@ const nextConfig = {
   // Reduce module resolution
   pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
   
-  // Faster builds
-  swcMinify: true,
+  // Faster builds (swcMinify is enabled by default in Next.js 15)
   
   // Disable source maps in dev for speed
-  productionBrowserSourceMaps: false
+  productionBrowserSourceMaps: false,
+  
+  // Enable standalone output for Docker
+  output: 'standalone'
 }
 
 module.exports = nextConfig
