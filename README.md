@@ -3,6 +3,8 @@
 ## 📖 Concept
 SOKAI is a football fitness app leveraging Soulbound Tokens (SBTs) on the Chiliz blockchain to certify and prove players' real-world performance through AI-powered ball detection.
 
+🎥 **[Watch Demo Video](https://www.youtube.com/watch?v=xEqNlDDLiHo)**
+
 ---
 
 ## 🎯 What is a Soulbound Token (SBT)?
