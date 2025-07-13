@@ -21,10 +21,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Adresse utilisateur invalide' });
   }
 
-  // Valeurs fictives pour le mint automatique
-  const score = 42;
-  const timeSpent = 123;
-  const exercise = 'Squats';
+  // Valeurs initiales pour un nouveau joueur
+  const score = 0;
+  const timeSpent = 0;
+  const exercise = 'Nouveau joueur';
   const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   const userId = userAddress;
 

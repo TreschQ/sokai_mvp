@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, MutableRefObject } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useStatsManager } from '@/hooks/useStatsManager';
 
 interface TargetBbox {
   x1: number;
@@ -14,12 +15,6 @@ interface Target {
   position: [number, number, number];
 }
 
-interface BallBox {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-}
 
 export default function Home() {
   const [temps, setTemps] = useState<number>(30);
@@ -27,10 +22,14 @@ export default function Home() {
   const [nombrePoints, setNombrePoints] = useState<number>(0);
   const [target, setTarget] = useState<Target>(genererPositionCible());
   const [isTuched, setIsTouched] = useState<boolean>(false);
-  const [countdown, setCountdown] = useState<number>(3); // Ajout du décompte
+  const [countdown, setCountdown] = useState<number>(3);
+  const [isGameFinished, setIsGameFinished] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const timerRef = useRef<HTMLDivElement | null>(null);
   const pointsRef = useRef<HTMLDivElement | null>(null);
+  
+  // Hook pour la gestion des stats
+  const { updateGameStats, isLoading } = useStatsManager();
 
   // Décompte avant le début du jeu
   useEffect(() => {
@@ -46,22 +45,39 @@ export default function Home() {
       setShowScore(true);
       setIsTouched(false);
       const timer = setTimeout(() => {
-        setShowScore(false);
+        setShowScore(false); // Changé de true à 
+  false
       }, 1000);
 
-      return () => clearTimeout(timer);
+      return () => clearTimeout(timer); // Nettoie 
+
     }
   }, [isTuched]);
 
   // Timer principal, démarre après le décompte
   useEffect(() => {
     if (countdown > 0) return;
-    if (temps <= 0) return;
-    const interval = setInterval(() => {
-      setTemps(t => t - 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [countdown, temps]);
+    if (temps <= 0 && !isGameFinished) {
+      setIsGameFinished(true);
+      // Fin du jeu - mise à jour des stats
+      updateGameStats(nombrePoints, 30, 'Touch and Dash');
+      return;
+    }
+    if (temps > 0) {
+      const interval = setInterval(() => {
+        setTemps(t => t - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [countdown, temps, nombrePoints, isGameFinished, updateGameStats]);
+
+  // Gestion des 100 points atteints
+  useEffect(() => {
+    if (nombrePoints >= 100 && !isGameFinished) {
+      setIsGameFinished(true);
+      updateGameStats(nombrePoints, 30, 'Touch and Dash');
+    }
+  }, [nombrePoints, isGameFinished, updateGameStats]);
 
   // Webcam
   useEffect(() => {
@@ -84,7 +100,7 @@ export default function Home() {
 
   // Capture et traitement d'image toutes les X ms
   useEffect(() => {
-    if (temps <= 0) return;
+    if (temps <= 0 || isGameFinished) return;
     const interval = setInterval(async () => {
       if (!videoRef.current) return;
       // Capture une frame du flux vidéo
@@ -109,7 +125,7 @@ export default function Home() {
       }
     }, 500); // toutes les 500ms
     return () => clearInterval(interval);
-  }, [temps, target]);
+  }, [temps, target, isGameFinished]);
 
   // Affichage du cercle cible sur le canvas
   useEffect(() => {
@@ -122,7 +138,7 @@ export default function Home() {
     ctx.clearRect(0, 0, overlay.width, overlay.height);
     
     // Dessiner la cible seulement pendant le jeu (après countdown et avant fin)
-    if (countdown <= 0 && temps > 0) {
+    if (countdown <= 0 && temps > 0 && !isGameFinished) {
       const [x, y, rayon] = target.position;
       ctx.beginPath();
       ctx.arc(x, y, rayon, 0, 2 * Math.PI);
@@ -156,7 +172,7 @@ export default function Home() {
           {countdown}
         </div>
       )}
-      {(temps === 0 || nombrePoints >= 100) && (
+      {isGameFinished && (
         <div
           style={{
             position: 'absolute',
@@ -174,6 +190,7 @@ export default function Home() {
           }}
         >
          NOMBRE DE POINTS : {nombrePoints}
+         {isLoading && <div style={{fontSize: 20, marginTop: 20}}>Sauvegarde en cours...</div>}
         </div>
       )}
       {(showScore) && (
@@ -312,9 +329,4 @@ function trouverResultats(data: any): boolean {
   } else {
     return !!data["reaches_target"];
   }
-}
-
-// Placeholder pour l'envoi des résultats à la blockchain
-function ecrireResultat() {
-  // TODO : envoyer les résultats à la blockchain
 }
