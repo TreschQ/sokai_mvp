@@ -34,7 +34,10 @@ export default function Home() {
 
   // Décompte avant le début du jeu
   useEffect(() => {
-    if (countdown <= 0) return;
+    if (countdown <= 0) {
+      new Audio('start.mp3').play();
+      return;
+    };
     const interval = setInterval(() => {
       setCountdown(c => c - 1);
     }, 1000);
