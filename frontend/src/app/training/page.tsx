@@ -343,4 +343,3 @@ function trouverResultats(data: any): boolean {
     return !!data["reaches_target"];
   }
 }
-
