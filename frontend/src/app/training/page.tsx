@@ -128,6 +128,7 @@ export default function Home() {
           setIsTouched(true);
           setNombrePoints(p => p + 5);
           setNbEssaie(e => e + 1);
+          new Audio('points_V2.mp3').play();
           const nouvelleCible = genererPositionCible(nbEssaie);
           setTarget(nouvelleCible);
         }
@@ -219,6 +220,8 @@ export default function Home() {
       )}
       {showScore && (
         <div
+          id="score"
+          ref={pointsRef}
           style={{
             position: 'absolute',
             top: 0,
@@ -302,7 +305,7 @@ function genererPositionCible(nbEssaie : number): Target {
   };
   }
   else {
-    const x = 600;
+    const x = 400;
     const y = 400;
     return {
     target_bbox: {
