@@ -219,6 +219,8 @@ export default function Home() {
       )}
       {showScore && (
         <div
+          id="score"
+          ref={pointsRef}
           style={{
             position: 'absolute',
             top: 0,
@@ -302,7 +304,7 @@ function genererPositionCible(nbEssaie : number): Target {
   };
   }
   else {
-    const x = 600;
+    const x = 400;
     const y = 400;
     return {
     target_bbox: {
