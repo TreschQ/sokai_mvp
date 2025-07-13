@@ -83,7 +83,12 @@ export default function Home() {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    navigator.mediaDevices.getUserMedia({ 
+      video: { 
+        facingMode: 'environment' // Caméra arrière
+      }, 
+      audio: false 
+    })
       .then(stream => {
         video.srcObject = stream;
       })
