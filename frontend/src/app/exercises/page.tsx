@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import BottomBar from '@/components/BottomBar'
 import Image from 'next/image'
 import { FaTrophy } from 'react-icons/fa'
+import { useAutoMint } from '@/hooks/useAutoMint'
+import { usePlayerScore } from '@/hooks/usePlayerScore'
 
 const exercises = [
   {
@@ -18,6 +20,10 @@ const exercises = [
 
 export default function ExercisesPage() {
   const router = useRouter()
+  
+  // Récupération du tokenId et du score
+  const { tokenId, isReady } = useAutoMint()
+  const { score: performanceScore } = usePlayerScore({ tokenId, enabled: isReady && !!tokenId })
 
   const handleExerciseClick = (exerciseId: number) => {
     if (exerciseId === 1) {
@@ -48,7 +54,7 @@ export default function ExercisesPage() {
           className="object-contain"
         />
         <div className="flex flex-col items-center text-sm font-medium">
-          <span className="text-[#7FB923] font-bold italic font-sans">1250</span>
+          <span className="text-[#7FB923] font-bold italic font-sans">{performanceScore || 0}</span>
           <span className="text-white text-xs font-bold italic font-sans">POINTS</span>
         </div>
         <FaTrophy className="text-[#7FB923] text-3xl ml-2" />

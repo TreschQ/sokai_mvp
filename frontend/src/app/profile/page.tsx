@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { usePrivy } from '@privy-io/react-auth'
 import { useSearchParams } from 'next/navigation'
 import { useAutoMint } from '@/hooks/useAutoMint'
+import { usePlayerScore } from '@/hooks/usePlayerScore'
 import WalletPlayerCard from '@/components/nft/WalletPlayerCard'
 import BottomBar from '@/components/BottomBar'
 import Header from '@/components/Header'
@@ -24,6 +25,12 @@ function ProfileContent() {
     isMinting,
     refresh 
   } = useAutoMint()
+
+  // Hook pour récupérer le score de performance
+  const { score: performanceScore } = usePlayerScore({ 
+    tokenId, 
+    enabled: isReady && !!tokenId 
+  })
   
   // Gestion du refresh depuis les paramètres URL
   useEffect(() => {
@@ -124,7 +131,7 @@ function ProfileContent() {
 
   return (
     <main className="min-h-screen flex flex-col justify-between bg-[#71E582] w-full px-2 py-6">
-      <Header performanceScore={1250} />
+      <Header performanceScore={performanceScore} />
       
       <div className="flex flex-col items-center justify-center flex-1 w-full -mt-16 gap-4">
         {/* Bouton temporaire pour déconnexion Privy */}

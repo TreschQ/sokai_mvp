@@ -19,7 +19,9 @@ const Header = ({ performanceScore }: HeaderProps) => {
             className="object-contain"
           />
           <div className="flex flex-col items-center text-sm font-medium">
-            <span className="text-[#7FB923] font-bold italic font-sans">{performanceScore}</span>
+            <span className="text-[#7FB923] font-bold italic font-sans">
+              {performanceScore || 0}
+            </span>
             <span className="text-white text-xs font-bold italic font-sans">POINTS</span>
           </div>
         </div>
