@@ -128,6 +128,7 @@ export default function Home() {
           setIsTouched(true);
           setNombrePoints(p => p + 5);
           setNbEssaie(e => e + 1);
+          new Audio('points_V2.mp3').play();
           const nouvelleCible = genererPositionCible(nbEssaie);
           setTarget(nouvelleCible);
         }
