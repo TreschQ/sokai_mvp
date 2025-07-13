@@ -246,13 +246,11 @@ export default function Home() {
 // Génère une nouvelle cible aléatoire
 function genererPositionCible(): Target {
   const rayon = 30; // Rayon de la cible
-  const x = Math.floor(Math.random() * (640 - 2 * rayon)) + rayon;
-  // Limite y au dernier quart de l'écran (360 à 480)
-  const minY = 480 * 0.80 + rayon; // 360 + rayon
-  const maxY = 480 - rayon;
-  const y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
-
-  return {
+  const random = Math.random();
+  if (random < 0.5) {
+    const x = 100;
+    const y = 400;
+    return {
     target_bbox: {
       x1: x - rayon,
       y1: y - rayon,
@@ -261,6 +259,27 @@ function genererPositionCible(): Target {
     },
     position: [x, y, rayon]
   };
+  }
+  else {
+    const x = 600;
+    const y = 400;
+    return {
+    target_bbox: {
+      x1: x - rayon,
+      y1: y - rayon,
+      x2: x + rayon,
+      y2: y + rayon
+    },
+    position: [x, y, rayon]
+  };
+  }
+  const x = Math.floor(Math.random() * (640 - 2 * rayon)) + rayon;
+  // Limite y au dernier quart de l'écran (360 à 480)
+  const minY = 480 * 0.80 + rayon; // 360 + rayon
+  const maxY = 480 - rayon;
+  const y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+
+  
 }
 
 // Envoie l'image au backend
