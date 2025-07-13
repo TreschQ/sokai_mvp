@@ -108,7 +108,7 @@ function ProfileContent() {
         <div className="bg-blue-900/20 rounded-lg p-3 mb-4 w-full max-w-xs mx-auto text-xs">
           <div className="text-white">
             <div>Thirdweb Account: {thirdwebAccount?.address ? '✅' : '❌'}</div>
-            <div>Thirdweb Wallet: {thirdwebWallet ? '✅' : '❌'}</div>
+            <div>Thirdweb Wallet: {thirdwebAccount?.address ? '✅' : '❌'}</div>
             <div>Privy User: {user?.wallet?.address ? '✅' : '❌'}</div>
             <div>Final Address: {walletAddress || 'None'}</div>
             <div>Connected: {isConnected ? '✅' : '❌'}</div>
@@ -152,9 +152,9 @@ function ProfileContent() {
 function ProfilePage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#23272F] to-[#444857]">
-        <div className="text-white">Loading...</div>
-      </main>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#23272F] to-[#444857]">
+        <div className="text-white">Chargement...</div>
+      </div>
     }>
       <ProfileContent />
     </Suspense>

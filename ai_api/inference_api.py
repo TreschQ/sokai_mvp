@@ -12,9 +12,11 @@ bbox_bas_droite = {"x1": 490, "y1": 300, "x2": 590, "y2": 400}
 
 # Démarre avec la cible à gauche
 current_target = bbox_bas_gauche
+frame_count = 0
+last_ball_position = None
 
 def main():
-    global current_target
+    global current_target, frame_count, last_ball_position
     cap = cv2.VideoCapture(0)
 
     if not cap.isOpened():
@@ -33,12 +35,37 @@ def main():
 
         # Afficher la bbox cible actuelle
         cv2.rectangle(frame,
-                      (int(current_target["x1"]), int(current_target["y1"])),
-                      (int(current_target["x2"]), int(current_target["y2"])),
-                      (255, 0, 0), 2)
+                     (int(current_target["x1"]), int(current_target["y1"])),
+                     (int(current_target["x2"]), int(current_target["y2"])),
+                     (255, 0, 0), 2)
         cv2.putText(frame, "Target", (int(current_target["x1"]), int(current_target["y1"] - 10)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
 
+        # Détection du ballon toutes les 10 frames
+        if frame_count % 10 == 0:
+            _, img_encoded = cv2.imencode('.jpg', frame)
+            files = {'file': ("frame.jpg", img_encoded.tobytes(), 'image/jpeg')}
+            data = {'target_bbox': json.dumps(current_target)}
+
+            try:
+                response = requests.post(API_URL, files=files, data=data, timeout=0.5)
+                if response.ok:
+                    result = response.json()
+                    if "ball_bbox" in result:
+                        last_ball_position = result["ball_bbox"]
+            except:
+                pass
+
+        # Afficher la bbox du ballon si disponible
+        if last_ball_position:
+            cv2.rectangle(frame,
+                         (int(last_ball_position["x1"]), int(last_ball_position["y1"])),
+                         (int(last_ball_position["x2"]), int(last_ball_position["y2"])),
+                         (0, 255, 0), 2)
+            cv2.putText(frame, "Ball", (int(last_ball_position["x1"]), int(last_ball_position["y1"] - 10)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+
+        frame_count += 1
         cv2.imshow("Webcam - Appuyez sur 's' pour capturer", frame)
 
         key = cv2.waitKey(1)

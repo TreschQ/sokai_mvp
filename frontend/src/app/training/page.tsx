@@ -46,12 +46,10 @@ export default function Home() {
       setShowScore(true);
       setIsTouched(false);
       const timer = setTimeout(() => {
-        setShowScore(false); // Changé de true à 
-  false
+        setShowScore(false);
       }, 1000);
 
-      return () => clearTimeout(timer); // Nettoie 
-
+      return () => clearTimeout(timer);
     }
   }, [isTuched]);
 
