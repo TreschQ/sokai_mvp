@@ -15,69 +15,68 @@ const SokaiCard: React.FC<SokaiCardProps> = ({
   score = 0 
 }) => {
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative w-full max-w-[372px] mx-auto ${className}`}>
       <svg 
         xmlns="http://www.w3.org/2000/svg" 
-        width="372" 
-        height="612" 
-        viewBox="0 0 372 612" 
+        width="373" 
+        height="603" 
+        viewBox="0 0 373 603" 
         fill="none"
         className="w-full h-auto"
       >
         <path 
-          fill="url(#paint0_linear_22_17)" 
-          d="M47.6598 38.6043C48.6431 65.4007 25.4204 78.0145 9.28855 81.008C4.8065 81.8397 0.97168 85.5064 0.97168 90.065V510.391C0.97168 523.716 10.395 535.121 23.3256 538.338C103.82 558.368 165.919 594.007 189.381 611.297C190.064 611.8 190.965 611.8 191.672 611.332C215.134 594.042 277.233 558.403 357.728 538.373C370.659 535.156 380.082 523.751 380.082 510.426V90.1C380.082 85.5414 376.247 81.8747 371.765 81.0431C355.633 78.0496 332.41 65.4358 333.394 38.6394C333.514 35.3546 332.055 32.1124 329.147 30.5792C281.968 5.70133 170.31 -22.3257 56.25 32.8217C55.734 33.0712 55.149 33.2762 54.594 33.4217C23.06 41.6944 56.134 67.8306 16.132 77.3144C12.31 78.2207 9.38916 81.5255 9.38916 85.4539V509.431C9.38916 523.198 19.3902 534.952 32.677 538.557C68.339 548.234 127.467 570.385 189.381 611.367C190.088 611.835 190.989 611.835 191.672 611.332Z"
+          d="M53.8657 43.4504C54.6378 68.6035 32.9074 80.5613 17.5672 83.525C13.0917 84.3896 9.25537 88.0597 9.25537 92.6179V494.936C9.25537 506.362 17.3371 516.147 28.4385 518.85C106.333 537.816 166.533 572.226 189.195 588.87C189.878 589.371 190.778 589.372 191.484 588.906C251.936 549.002 309.6 527.842 343.386 518.957C354.802 515.956 363.38 505.889 363.38 494.085V89.5665C363.38 85.0459 359.605 81.4904 355.1 81.1184C326.616 78.7662 320.774 58.5444 321.757 44.1475C322.007 40.5015 320.338 36.8205 317.049 35.2278C208.827 -17.1747 102.798 11.841 58.1293 35.386C55.2177 36.9207 53.7647 40.1606 53.8657 43.4504Z" 
+          fill="#3F3F3F"
         />
-        <defs>
-          <linearGradient 
-            id="paint0_linear_22_17" 
-            x1="186.318" 
-            y1="-0.58717" 
-            x2="186.318" 
-            y2="612.119" 
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#90CB25"/>
-            <stop offset="0.0001" stopColor="#3F3E3E"/>
-          </linearGradient>
-        </defs>
       </svg>
       
       {/* NFT-top overlay */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-full max-w-[300px] overflow-hidden">
+      <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-[310px] overflow-hidden">
         <Image 
-          src="/NFT-top.png" 
+          src="/makses-top-nft.png" 
           alt="NFT Top" 
-          width={300} 
-          height={200}
+          width={350} 
+          height={150}
           className="w-full h-auto object-contain"
         />
       </div>
 
       {/* Stats section */}
-      <div className="absolute top-[220px] left-1/2 transform -translate-x-1/2 w-full max-w-[300px] space-y-0">
+      <div className="absolute top-[240px] left-1/2 transform -translate-x-1/2 w-[300px] space-y-0">
+        
         {/* SOKAI CLUB header */}
-        <div className="bg-[#91CC26] border border-black px-4 py-3 text-center">
-          <h2 className="font-esport text-black text-lg font-normal">SOKAI CLUB</h2>
+        <div className="bg-[#91CC26] border border-black border-t-0 px-4 py-1 text-left">
+          <h2 className="font-esport text-black text-base font-normal">SOKAI CLUB</h2>
         </div>
 
         {/* Minutes played */}
-        <div className="bg-[#C1DF8A] border border-black border-t-0 px-4 py-3 flex justify-between items-center">
-          <span className="font-sans text-black">Minutes played</span>
-          <span className="font-sans text-black font-medium">{minutesPlayed}</span>
+        <div className="bg-[#C1DF8A] border border-black border-t-0 px-4 py-1 flex justify-between items-center">
+          <span className="font-sans text-black italic text-sm">Minutes played</span>
+          <span className="font-sans text-black font-bold text-sm">{minutesPlayed}</span>
         </div>
 
         {/* Games */}
-        <div className="bg-[#C1DF8A] border border-black border-t-0 px-4 py-3 flex justify-between items-center">
-          <span className="font-sans text-black">Games</span>
-          <span className="font-sans text-black font-medium">{gamesPlayed}</span>
+        <div className="bg-[#C1DF8A] border border-black border-t-0 px-4 py-1 flex justify-between items-center">
+          <span className="font-sans text-black italic text-sm">Games</span>
+          <span className="font-sans text-black font-bold text-sm">{gamesPlayed}</span>
         </div>
 
         {/* Score */}
-        <div className="bg-[#C1DF8A] border border-black border-t-0 px-4 py-3 flex justify-between items-center">
-          <span className="font-sans text-black">Score</span>
-          <span className="font-sans text-black font-medium">{score}</span>
+        <div className="bg-[#C1DF8A] border border-black border-t-0 px-4 py-1 flex justify-between items-center">
+          <span className="font-sans text-black italic text-sm">Score</span>
+          <span className="font-sans text-black font-bold text-sm">{score}</span>
         </div>
+      </div>
+
+      {/* Sokai Club logo */}
+      <div className="absolute top-[375px] left-1/2 transform -translate-x-1/2">
+        <Image 
+          src="/sokaiclub.png" 
+          alt="Sokai Club" 
+          width={60} 
+          height={65}
+          className="w-24 h-24 object-contain"
+        />
       </div>
     </div>
   )

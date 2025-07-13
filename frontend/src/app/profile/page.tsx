@@ -5,7 +5,7 @@ import { usePrivy } from '@privy-io/react-auth'
 import { useSearchParams } from 'next/navigation'
 import { useAutoMint } from '@/hooks/useAutoMint'
 import { usePlayerScore } from '@/hooks/usePlayerScore'
-import WalletPlayerCard from '@/components/nft/WalletPlayerCard'
+import SokaiPlayerCard from '@/components/nft/SokaiPlayerCard'
 import BottomBar from '@/components/BottomBar'
 import Header from '@/components/Header'
 
@@ -92,7 +92,7 @@ function ProfileContent() {
     if (isReady && walletAddress && tokenId) {
       return (
         <div className="w-full max-w-xs mx-auto">
-          <WalletPlayerCard 
+          <SokaiPlayerCard 
             key={refreshKey}
             walletAddress={walletAddress}
             contractAddress={process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!}
@@ -133,7 +133,7 @@ function ProfileContent() {
     <main className="min-h-screen flex flex-col justify-between bg-[#71E582] w-full px-2 py-6">
       <Header performanceScore={performanceScore} />
       
-      <div className="flex flex-col items-center justify-center flex-1 w-full -mt-16 gap-4">
+      <div className="flex flex-col items-center justify-center flex-1 w-full gap-4">
         {/* Bouton temporaire pour déconnexion Privy */}
         {user?.wallet && (
           <button
