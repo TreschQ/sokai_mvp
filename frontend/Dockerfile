@@ -14,15 +14,16 @@ COPY next.config.js ./
 COPY tsconfig.json ./
 
 # Installer toutes les dépendances
-RUN npm ci
+RUN npm install
 
 # Copier le code source
 COPY . .
 
 # Construire l'application
-RUN npm run build
+#RUN npm run build
+# changer pour build
 
 EXPOSE 3000
 
 # Démarrer l'application
-CMD ["npm", "start"]
+CMD ["npm", "run","dev"]
