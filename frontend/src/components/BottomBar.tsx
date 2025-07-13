@@ -20,8 +20,8 @@ const BottomBar = () => {
     }
   }
   return (
-    <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[95vw] max-w-md">
-      <div className="rounded-full bg-[#23272F] border border-gray-800 shadow-lg flex justify-around items-center h-16 px-2">
+    <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[85vw] max-w-md">
+      <div className="rounded-xl bg-gradient-to-r from-[#1C2127] to-[#3F3E3E] border border-gray-800 shadow-lg flex justify-around items-center h-12 px-2">
         {navItems.map((item) => (
           <button
             key={item.href}

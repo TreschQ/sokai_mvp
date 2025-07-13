@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { useAutoMint } from '@/hooks/useAutoMint'
 import WalletPlayerCard from '@/components/nft/WalletPlayerCard'
 import BottomBar from '@/components/BottomBar'
+import Header from '@/components/Header'
 
 function ProfileContent() {
   const { user, logout: privyLogout } = usePrivy()
@@ -123,9 +124,7 @@ function ProfileContent() {
 
   return (
     <main className="min-h-screen flex flex-col justify-between bg-[#71E582] w-full px-2 py-6">
-      <header className="flex items-center justify-between w-full max-w-xs mx-auto">
-        <h1 className="text-base font-bold text-white text-center flex-1">My SOKAI PASSPORT</h1>
-      </header>
+      <Header performanceScore={1250} />
       
       <div className="flex flex-col items-center justify-center flex-1 w-full -mt-16 gap-4">
         {/* Bouton temporaire pour déconnexion Privy */}
