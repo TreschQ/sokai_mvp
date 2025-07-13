@@ -122,7 +122,7 @@ function ProfileContent() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col justify-between bg-gradient-to-b from-[#23272F] to-[#444857] w-full px-2 py-6">
+    <main className="min-h-screen flex flex-col justify-between bg-[#71E582] w-full px-2 py-6">
       <header className="flex items-center justify-between w-full max-w-xs mx-auto">
         <h1 className="text-base font-bold text-white text-center flex-1">My SOKAI PASSPORT</h1>
       </header>
@@ -138,7 +138,7 @@ function ProfileContent() {
           </button>
         )}
         
-        {/* Debug info si nécessaire */}
+        {/* Debug info si nécessaire 
         {process.env.NODE_ENV === 'development' && walletAddress && (
           <div className="bg-blue-900/20 rounded-lg p-3 mb-4 w-full max-w-xs mx-auto text-xs">
             <div className="text-white">
@@ -148,6 +148,7 @@ function ProfileContent() {
             </div>
           </div>
         )}
+          */}
         
         {renderContent()}
       </div>
