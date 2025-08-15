@@ -2,13 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useStatsManager } from '@/hooks/useStatsManager';
+import { ballDetectionService, type BoundingBox } from '@/services/ballDetectionService';
+import { DetectionStatus } from './DetectionStatus';
 
-interface TargetBbox {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-}
+// Utilisation du type BoundingBox du service
+interface TargetBbox extends BoundingBox {}
 
 interface Target {
   target_bbox: TargetBbox;
@@ -31,6 +29,16 @@ export default function Home() {
   
   // Hook pour la gestion des stats
   const { updateGameStats, isLoading } = useStatsManager();
+
+  // Initialisation du service de détection local
+  useEffect(() => {
+    ballDetectionService.initialize().catch(console.error);
+    
+    // Nettoyage à la fermeture
+    return () => {
+      ballDetectionService.cleanup();
+    };
+  }, []);
 
   // Décompte avant le début du jeu
   useEffect(() => {
@@ -287,6 +295,9 @@ export default function Home() {
       >
         Temps : {temps}
       </div>
+      
+      {/* Indicateur de détection IA */}
+      <DetectionStatus />
     </div>
   );
 }
@@ -323,20 +334,20 @@ function genererPositionCible(nbEssaie : number): Target {
   
 }
 
-// Envoie l'image au backend
+// Détection locale avec IA dans le navigateur
 async function envoyerImage(imageBlob: Blob, bbox: TargetBbox): Promise<any> {
   try {
-    const formData = new FormData();
-    formData.append('file', imageBlob, 'capture.png');
-    formData.append('bbox', JSON.stringify(bbox));
-
-    const response = await fetch('/api/upload-image', {
-      method: 'POST',
-      body: formData
-    });
-    if (!response.ok) throw new Error('Erreur lors de l\'envoi de l\'image');
-    return await response.json();
+    // Convertir le Blob en File pour le service
+    const imageFile = new File([imageBlob], 'capture.png', { type: 'image/png' });
+    
+    // Utiliser le service de détection locale
+    const result = await ballDetectionService.detectBall(imageFile, bbox);
+    
+    console.log(`🎯 Détection locale (${ballDetectionService.getMode()}):`, result);
+    
+    return result;
   } catch (err) {
+    console.error('❌ Erreur détection locale:', err);
     throw err;
   }
 }

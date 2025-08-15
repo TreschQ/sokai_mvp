@@ -50,8 +50,8 @@ export default async function handler(req, res) {
     try {
       // Envoi direct sans sauvegarde de fichiers
       const formData = new FormData();
-      console.log("Fichier à envoyer :", file.toString());
-      console.log("Bbox à envoyer :", bboxValue);
+      console.log("Fichier à envoyer :", file);
+      console.log("Bbox à envoyer :", JSON.parse(bboxValue));
       formData.append('file', fs.createReadStream(file.filepath), {
         filename: file.filepath,
         contentType: 'image/jpeg'
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
         console.log('Réponse de l\'API Python:', response.data);
         res.status(200).json(response.data);
       } catch (error) {
-        console.error('Erreur lors de la requête à l\'API Python:', error.response.data);
+        console.error('Erreur lors de la requête à l\'API Python:', error.response?.data || error.message);
         res.status(500).json({ error: 'Erreur lors de la requête à l\'API Python', details: error.message });
       }
     } catch (e) {
