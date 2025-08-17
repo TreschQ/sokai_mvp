@@ -23,6 +23,17 @@ class LocalBallDetection {
   private modelLoaded = false;
   private loadingPromise: Promise<void> | null = null;
   private initialized = false;
+  private canvasPool: HTMLCanvasElement[] = [];
+  private readonly modelSize = 640; // Taille requise par le modèle YOLO
+  
+  // Statistiques de performance
+  private performanceStats = {
+    preprocessingTimes: [] as number[],
+    inferenceTimes: [] as number[],
+    postprocessingTimes: [] as number[],
+    totalTimes: [] as number[],
+    maxSamples: 30 // Moyenne sur les 30 dernières détections
+  };
 
   constructor() {
     this.initializeOnnxRuntime();
@@ -44,6 +55,11 @@ class LocalBallDetection {
       ort.env.wasm.numThreads = navigator.hardwareConcurrency || 4;
       ort.env.wasm.simd = true;
       ort.env.logLevel = 'warning';
+      
+      // Optimisations WebGL
+      ort.env.webgl.contextId = 'webgl2';
+      ort.env.webgl.matmulMaxBatchSize = 16;
+      ort.env.webgl.textureCacheMode = 'pack';
       
       this.initialized = true;
       console.log('✅ ONNX Runtime initialisé avec:', {
@@ -106,14 +122,21 @@ class LocalBallDetection {
       // Charger le modèle ONNX
       console.log('📁 Tentative de chargement depuis /models/best.onnx');
       this.session = await ort.InferenceSession.create('/models/best.onnx', {
-        executionProviders: ['webgl', 'wasm', 'cpu'], // Plusieurs fallbacks
+        executionProviders: ['webgl', 'wasm', 'cpu'],
         graphOptimizationLevel: 'all',
-        enableMemPattern: false,
-        enableCpuMemArena: false,
+        enableMemPattern: true,
+        enableCpuMemArena: true,
+        executionMode: 'parallel',
+        interOpNumThreads: navigator.hardwareConcurrency || 4,
+        intraOpNumThreads: 1,
         extra: {
           session: {
             disable_prepacking: false,
             use_device_allocator_for_initializers: true,
+            use_env_allocators: true,
+            enable_cpu_mem_arena: true,
+            enable_mem_pattern: true,
+            enable_mem_reuse: true
           }
         }
       });
@@ -132,38 +155,70 @@ class LocalBallDetection {
   }
 
   /**
-   * Préprocesse une image pour l'inférence YOLO
+   * Obtient un canvas réutilisable du pool
    */
-  private preprocessImage(imageElement: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement): ort.Tensor {
-    // Créer un canvas pour redimensionner l'image
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d')!;
-    
-    // Taille d'entrée YOLO (640x640)
-    const modelSize = 640;
-    canvas.width = modelSize;
-    canvas.height = modelSize;
-    
-    // Dessiner l'image redimensionnée
-    ctx.drawImage(imageElement, 0, 0, modelSize, modelSize);
-    
-    // Obtenir les données de pixels
-    const imageData = ctx.getImageData(0, 0, modelSize, modelSize);
-    const pixels = imageData.data;
-    
-    // Convertir en format YOLO (RGB, normalisé, NCHW)
-    const input = new Float32Array(3 * modelSize * modelSize);
-    
-    for (let i = 0; i < modelSize * modelSize; i++) {
-      const pixelIndex = i * 4;
-      // Normalisation [0-255] -> [0-1] et conversion RGB
-      input[i] = pixels[pixelIndex] / 255.0; // R
-      input[modelSize * modelSize + i] = pixels[pixelIndex + 1] / 255.0; // G
-      input[modelSize * modelSize * 2 + i] = pixels[pixelIndex + 2] / 255.0; // B
+  private getCanvas(): HTMLCanvasElement {
+    if (this.canvasPool.length > 0) {
+      return this.canvasPool.pop()!;
     }
     
-    // Créer le tensor ONNX (batch_size=1, channels=3, height=640, width=640)
-    return new ort.Tensor('float32', input, [1, 3, modelSize, modelSize]);
+    const canvas = document.createElement('canvas');
+    canvas.width = this.modelSize;
+    canvas.height = this.modelSize;
+    return canvas;
+  }
+
+  /**
+   * Retourne un canvas au pool
+   */
+  private returnCanvas(canvas: HTMLCanvasElement): void {
+    if (this.canvasPool.length < 3) { // Limite le pool à 3 canvas
+      this.canvasPool.push(canvas);
+    }
+  }
+
+  /**
+   * Préprocesse une image pour l'inférence YOLO (optimisé)
+   */
+  private preprocessImage(imageElement: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement): ort.Tensor {
+    const canvas = this.getCanvas();
+    const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true })!;
+    
+    // Utiliser imageSmoothingEnabled = true pour de meilleures détections
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'low'; // Compromis qualité/vitesse
+    
+    // Dessiner l'image redimensionnée
+    ctx.drawImage(imageElement, 0, 0, this.modelSize, this.modelSize);
+    
+    // Obtenir les données de pixels
+    const imageData = ctx.getImageData(0, 0, this.modelSize, this.modelSize);
+    const pixels = imageData.data;
+    
+    // Convertir en format YOLO optimisé (NCHW)
+    const totalPixels = this.modelSize * this.modelSize;
+    const input = new Float32Array(3 * totalPixels);
+    
+    // Optimisation: traiter par chunks pour améliorer la cache locality
+    const chunkSize = 1024;
+    for (let chunk = 0; chunk < totalPixels; chunk += chunkSize) {
+      const end = Math.min(chunk + chunkSize, totalPixels);
+      
+      for (let i = chunk; i < end; i++) {
+        const pixelIndex = i * 4;
+        const inv255 = 1 / 255; // Pré-calculer la division
+        
+        // Normalisation [0-255] -> [0-1] avec multiplication au lieu de division
+        input[i] = pixels[pixelIndex] * inv255; // R
+        input[totalPixels + i] = pixels[pixelIndex + 1] * inv255; // G
+        input[totalPixels * 2 + i] = pixels[pixelIndex + 2] * inv255; // B
+      }
+    }
+    
+    // Retourner le canvas au pool
+    this.returnCanvas(canvas);
+    
+    return new ort.Tensor('float32', input, [1, 3, this.modelSize, this.modelSize]);
   }
 
   /**
@@ -171,9 +226,13 @@ class LocalBallDetection {
    */
   private postprocessResults(output: ort.Tensor, originalWidth: number, originalHeight: number): BoundingBox | null {
     const data = output.data as Float32Array;
-    console.log('📊 Dimensions de sortie:', output.dims);
-    console.log('📊 Taille des données:', data.length);
-    console.log('📊 Premiers éléments:', Array.from(data.slice(0, 10)));
+    
+    // Logs conditionnels pour éviter la surcharge en production
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📊 Dimensions de sortie:', output.dims);
+      console.log('📊 Taille des données:', data.length);
+      console.log('📊 Premiers éléments:', Array.from(data.slice(0, 10)));
+    }
     
     // YOLOv8 peut avoir différents formats de sortie
     // Format possible 1: [1, 84, 8400] - (batch, classes+coords, predictions)
@@ -203,12 +262,16 @@ class LocalBallDetection {
       isTransposed = true;
     }
     
-    console.log(`📊 Nombre de boîtes: ${numBoxes}, Features par boîte: ${featuresPerBox}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`📊 Nombre de boîtes: ${numBoxes}, Features par boîte: ${featuresPerBox}`);
+    }
     
     let bestDetection: BoundingBox | null = null;
     let bestConfidence = 0;
-    const confidenceThreshold = 0.25; // Seuil plus bas pour le debug
-    const modelSize = 640;
+    const confidenceThreshold = 0.5; // Seuil plus élevé pour réduire les faux positifs
+    
+    // Optimisation: arrêt anticipé si on trouve une très bonne détection
+    const earlyStopThreshold = 0.9;
     
     for (let i = 0; i < numBoxes; i++) {
       let xCenter, yCenter, width, height, confidence;
@@ -221,7 +284,11 @@ class LocalBallDetection {
         width = data[boxOffset + 2];
         height = data[boxOffset + 3];
         // La confiance est généralement après les coordonnées
-        confidence = Math.max(...Array.from(data.slice(boxOffset + 4, boxOffset + featuresPerBox)));
+        // Optimisation: éviter la création d'un tableau et l'appel à Math.max
+        confidence = 0;
+        for (let j = boxOffset + 4; j < boxOffset + featuresPerBox; j++) {
+          if (data[j] > confidence) confidence = data[j];
+        }
       } else {
         // Format [1, 84, 8400]
         xCenter = data[i];
@@ -237,19 +304,26 @@ class LocalBallDetection {
       
       if (confidence > confidenceThreshold && confidence > bestConfidence) {
         // Convertir du format YOLO vers les coordonnées réelles
-        const x1 = (xCenter - width / 2) * (originalWidth / modelSize);
-        const y1 = (yCenter - height / 2) * (originalHeight / modelSize);
-        const x2 = (xCenter + width / 2) * (originalWidth / modelSize);
-        const y2 = (yCenter + height / 2) * (originalHeight / modelSize);
+        const x1 = (xCenter - width / 2) * (originalWidth / this.modelSize);
+        const y1 = (yCenter - height / 2) * (originalHeight / this.modelSize);
+        const x2 = (xCenter + width / 2) * (originalWidth / this.modelSize);
+        const y2 = (yCenter + height / 2) * (originalHeight / this.modelSize);
         
         bestDetection = { x1, y1, x2, y2 };
         bestConfidence = confidence;
         
-        console.log(`🎯 Détection trouvée: conf=${confidence.toFixed(3)}, box=[${x1.toFixed(0)},${y1.toFixed(0)},${x2.toFixed(0)},${y2.toFixed(0)}]`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`🎯 Détection trouvée: conf=${confidence.toFixed(3)}, box=[${x1.toFixed(0)},${y1.toFixed(0)},${x2.toFixed(0)},${y2.toFixed(0)}]`);
+        }
+        
+        // Arrêt anticipé si très bonne détection
+        if (confidence > earlyStopThreshold) {
+          break;
+        }
       }
     }
     
-    if (!bestDetection) {
+    if (!bestDetection && process.env.NODE_ENV === 'development') {
       console.log('❌ Aucune détection au-dessus du seuil');
     }
     
@@ -284,9 +358,13 @@ class LocalBallDetection {
     imageElement: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement,
     targetBbox?: BoundingBox
   ): Promise<DetectionResult> {
-    console.log('🔍 detectBall appelé');
-    console.log('🔍 Session existante?', !!this.session);
-    console.log('🔍 Modèle chargé?', this.modelLoaded);
+    const totalStart = performance.now();
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 detectBall appelé');
+      console.log('🔍 Session existante?', !!this.session);
+      console.log('🔍 Modèle chargé?', this.modelLoaded);
+    }
     
     if (!this.session) {
       console.log('⏳ Session manquante, chargement du modèle...');
@@ -299,24 +377,20 @@ class LocalBallDetection {
     }
 
     try {
-      // Préprocesser l'image
-      console.log('🖼️ Prétraitement de l\'image...');
+      // Mesurer le preprocessing
+      const preprocessStart = performance.now();
       const inputTensor = this.preprocessImage(imageElement);
-      console.log('🖼️ Tensor d\'entrée créé:', inputTensor.dims);
+      const preprocessTime = performance.now() - preprocessStart;
       
-      // Exécuter l'inférence - utiliser le bon nom d'entrée du modèle
+      // Mesurer l'inférence
       const inputName = this.session.inputNames[0];
-      console.log('📊 Nom d\'entrée du modèle:', inputName);
-      console.log('🚀 Exécution de l\'inférence...');
-      
+      const inferenceStart = performance.now();
       const results = await this.session.run({ [inputName]: inputTensor });
+      const inferenceTime = performance.now() - inferenceStart;
       
-      console.log('📊 Résultats bruts:', results);
-      console.log('📊 Clés de sortie:', Object.keys(results));
-      
-      // Post-traiter les résultats - YOLOv8 utilise 'output0' comme nom de sortie par défaut
+      // Mesurer le post-processing
+      const postprocessStart = performance.now();
       const outputTensor = results.output0 || results[Object.keys(results)[0]];
-      console.log('📊 Tensor de sortie:', outputTensor?.dims);
       
       const originalWidth = imageElement instanceof HTMLImageElement ? 
         imageElement.naturalWidth : imageElement.width;
@@ -324,6 +398,7 @@ class LocalBallDetection {
         imageElement.naturalHeight : imageElement.height;
       
       const ballBbox = this.postprocessResults(outputTensor, originalWidth, originalHeight);
+      const postprocessTime = performance.now() - postprocessStart;
       
       if (!ballBbox) {
         return {
@@ -340,8 +415,29 @@ class LocalBallDetection {
       if (targetBbox) {
         intersectionPercentage = this.calculateIntersection(ballBbox, targetBbox);
         reachesTarget = intersectionPercentage > 0;
-        console.log(`🎯 Intersection: ${intersectionPercentage.toFixed(2)}%`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`🎯 Intersection: ${intersectionPercentage.toFixed(2)}%`);
+        }
       }
+
+      // Calculer le temps total
+      const totalTime = performance.now() - totalStart;
+      
+      // Mettre à jour les statistiques
+      this.updatePerformanceStats(preprocessTime, inferenceTime, postprocessTime, totalTime);
+      
+      // Afficher les métriques de performance avec moyennes
+      const avgPreprocess = this.getAverage(this.performanceStats.preprocessingTimes);
+      const avgInference = this.getAverage(this.performanceStats.inferenceTimes);
+      const avgPostprocess = this.getAverage(this.performanceStats.postprocessingTimes);
+      const avgTotal = this.getAverage(this.performanceStats.totalTimes);
+      
+      console.log(`⏱️ Performance détection:
+  • Preprocessing: ${preprocessTime.toFixed(1)}ms (moy: ${avgPreprocess.toFixed(1)}ms)
+  • Inférence: ${inferenceTime.toFixed(1)}ms (moy: ${avgInference.toFixed(1)}ms)
+  • Post-processing: ${postprocessTime.toFixed(1)}ms (moy: ${avgPostprocess.toFixed(1)}ms)
+  • Total: ${totalTime.toFixed(1)}ms (moy: ${avgTotal.toFixed(1)}ms)
+  • FPS: ${(1000 / totalTime).toFixed(1)} (moy: ${(1000 / avgTotal).toFixed(1)})`);
 
       return {
         ball_detected: true,
@@ -351,12 +447,74 @@ class LocalBallDetection {
       };
 
     } catch (error) {
-      console.error('❌ Erreur lors de la détection:', error);
+      const totalTime = performance.now() - totalStart;
+      console.error(`❌ Erreur lors de la détection (après ${totalTime.toFixed(1)}ms):`, error);
       if (error instanceof Error) {
         console.error('❌ Stack:', error.stack);
       }
       throw new Error(`Erreur d'inférence: ${error}`);
     }
+  }
+
+  /**
+   * Met à jour les statistiques de performance
+   */
+  private updatePerformanceStats(
+    preprocessTime: number,
+    inferenceTime: number,
+    postprocessTime: number,
+    totalTime: number
+  ): void {
+    const stats = this.performanceStats;
+    
+    // Ajouter les nouvelles mesures
+    stats.preprocessingTimes.push(preprocessTime);
+    stats.inferenceTimes.push(inferenceTime);
+    stats.postprocessingTimes.push(postprocessTime);
+    stats.totalTimes.push(totalTime);
+    
+    // Limiter la taille des tableaux
+    if (stats.preprocessingTimes.length > stats.maxSamples) {
+      stats.preprocessingTimes.shift();
+      stats.inferenceTimes.shift();
+      stats.postprocessingTimes.shift();
+      stats.totalTimes.shift();
+    }
+  }
+  
+  /**
+   * Calcule la moyenne d'un tableau de nombres
+   */
+  private getAverage(times: number[]): number {
+    if (times.length === 0) return 0;
+    return times.reduce((sum, time) => sum + time, 0) / times.length;
+  }
+
+  /**
+   * Obtient les statistiques de performance actuelles
+   */
+  getPerformanceStats(): {
+    avgPreprocessing: number;
+    avgInference: number;
+    avgPostprocessing: number;
+    avgTotal: number;
+    avgFPS: number;
+    sampleCount: number;
+  } {
+    const stats = this.performanceStats;
+    const avgPreprocessing = this.getAverage(stats.preprocessingTimes);
+    const avgInference = this.getAverage(stats.inferenceTimes);
+    const avgPostprocessing = this.getAverage(stats.postprocessingTimes);
+    const avgTotal = this.getAverage(stats.totalTimes);
+    
+    return {
+      avgPreprocessing,
+      avgInference,
+      avgPostprocessing,
+      avgTotal,
+      avgFPS: avgTotal > 0 ? 1000 / avgTotal : 0,
+      sampleCount: stats.totalTimes.length
+    };
   }
 
   /**
@@ -375,6 +533,8 @@ class LocalBallDetection {
       this.session = null;
       this.modelLoaded = false;
     }
+    // Nettoyer le pool de canvas
+    this.canvasPool.length = 0;
   }
 }
 
