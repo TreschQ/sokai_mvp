@@ -1,7 +1,5 @@
 import formidable from 'formidable';
 import fs from 'fs';
-import FormData from 'form-data';
-import axios from 'axios';
 
 export const config = {
   api: {
@@ -48,32 +46,27 @@ export default async function handler(req, res) {
     }
 
     try {
-      // Envoi direct sans sauvegarde de fichiers
-      const formData = new FormData();
-      console.log("Fichier à envoyer :", file);
-      console.log("Bbox à envoyer :", JSON.parse(bboxValue));
-      formData.append('file', fs.createReadStream(file.filepath), {
-        filename: file.filepath,
-        contentType: 'image/jpeg'
+      console.log("Fichier reçu :", file);
+      console.log("Bbox reçu :", bboxValue ? JSON.parse(bboxValue) : null);
+      
+      // Conversion du fichier en base64 pour retourner au client
+      // Le traitement IA se fait maintenant côté client avec localAI
+      const fileBuffer = fs.readFileSync(file.filepath);
+      const base64Data = fileBuffer.toString('base64');
+      const mimeType = file.mimetype || 'image/jpeg';
+      const dataUrl = `data:${mimeType};base64,${base64Data}`;
+      
+      // Retourne les données pour que le client puisse traiter avec l'IA locale
+      res.status(200).json({
+        success: true,
+        message: 'Image reçue - traitement côté client avec IA locale',
+        imageData: dataUrl,
+        bbox: bboxValue ? JSON.parse(bboxValue) : null
       });
-      formData.append('target_bbox', bboxValue);
-
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_BALL_DETECTION_API || 'http://localhost:8000';
-        const response = await axios.post(
-          `${apiUrl}/detect_ball`,
-          formData,
-          { headers: formData.getHeaders() }
-        );
-        console.log('Réponse de l\'API Python:', response.data);
-        res.status(200).json(response.data);
-      } catch (error) {
-        console.error('Erreur lors de la requête à l\'API Python:', error.response?.data || error.message);
-        res.status(500).json({ error: 'Erreur lors de la requête à l\'API Python', details: error.message });
-      }
+      
     } catch (e) {
-        console.error('Erreur lors de la requête à l\'API Python:', e);
-      res.status(500).json({ error: 'Erreur lors de la préparation des données' });
+      console.error('Erreur lors du traitement de l\'image:', e);
+      res.status(500).json({ error: 'Erreur lors du traitement de l\'image' });
     }
   });
 }

@@ -32,10 +32,18 @@ export default function Home() {
 
   // Initialisation du service de détection local
   useEffect(() => {
-    ballDetectionService.initialize().catch(console.error);
+    console.log('🚀 Page Training: Début initialisation service détection');
+    ballDetectionService.initialize()
+      .then(() => {
+        console.log('✅ Page Training: Service détection initialisé');
+      })
+      .catch((error) => {
+        console.error('❌ Page Training: Erreur initialisation:', error);
+      });
     
     // Nettoyage à la fermeture
     return () => {
+      console.log('🧹 Page Training: Nettoyage service détection');
       ballDetectionService.cleanup();
     };
   }, []);
@@ -43,7 +51,10 @@ export default function Home() {
   // Décompte avant le début du jeu
   useEffect(() => {
     if (countdown <= 0) {
-      new Audio('start.mp3').play();
+      // Jouer le son seulement si l'utilisateur a déjà interagi
+      new Audio('start.mp3').play().catch(err => {
+        console.log('Son de démarrage non joué (interaction requise)');
+      });
       return;
     };
     const interval = setInterval(() => {
@@ -139,7 +150,10 @@ export default function Home() {
           setIsTouched(true);
           setNombrePoints(p => p + 5);
           setNbEssaie(e => e + 1);
-          new Audio('points_V2.mp3').play();
+          // Jouer le son seulement si possible
+          new Audio('points_V2.mp3').play().catch(err => {
+            console.log('Son de points non joué');
+          });
           const nouvelleCible = genererPositionCible(nbEssaie);
           setTarget(nouvelleCible);
         }
@@ -337,18 +351,36 @@ function genererPositionCible(nbEssaie : number): Target {
 // Détection locale avec IA dans le navigateur
 async function envoyerImage(imageBlob: Blob, bbox: TargetBbox): Promise<any> {
   try {
+    // S'assurer que le modèle est initialisé
+    if (!ballDetectionService.isLocalAIReady()) {
+      console.log('⏳ Modèle non prêt, initialisation...');
+      try {
+        await ballDetectionService.initialize();
+        console.log('✅ Modèle initialisé avec succès');
+      } catch (initError) {
+        console.error('❌ Échec de l\'initialisation:', initError);
+        // Ne pas propager l'erreur, continuer avec l'API
+      }
+    }
+    
     // Convertir le Blob en File pour le service
     const imageFile = new File([imageBlob], 'capture.png', { type: 'image/png' });
     
     // Utiliser le service de détection locale
+    console.log(`🔍 Détection en mode: ${ballDetectionService.getMode()}`);
     const result = await ballDetectionService.detectBall(imageFile, bbox);
     
-    console.log(`🎯 Détection locale (${ballDetectionService.getMode()}):`, result);
+    console.log(`🎯 Résultat détection:`, result);
     
     return result;
   } catch (err) {
-    console.error('❌ Erreur détection locale:', err);
-    throw err;
+    console.error('❌ Erreur détection:', err);
+    // Retourner un résultat négatif au lieu de propager l'erreur
+    return {
+      ball_detected: false,
+      intersection_percentage: 0,
+      reaches_target: false
+    };
   }
 }
 

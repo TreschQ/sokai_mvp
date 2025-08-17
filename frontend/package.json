@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "npm run copy-wasm && next dev",
+    "build": "npm run copy-wasm && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "copy-wasm": "cp -f node_modules/onnxruntime-web/dist/*.wasm public/ && cp -f node_modules/onnxruntime-web/dist/*.mjs public/"
   },
   "dependencies": {
     "@privy-io/react-auth": "^1.87.0",

@@ -14,6 +14,12 @@ const nextConfig = {
       config.optimization.minimize = false
     }
     
+    // Configure WASM support
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+    }
+    
     return config
   },
   
@@ -26,7 +32,31 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   
   // Enable standalone output for Docker
-  output: 'standalone'
+  output: 'standalone',
+  
+  // Headers for WASM files
+  async headers() {
+    return [
+      {
+        source: '/:path*.(wasm)',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/wasm',
+          },
+        ],
+      },
+      {
+        source: '/:path*.(mjs)',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/javascript',
+          },
+        ],
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig
